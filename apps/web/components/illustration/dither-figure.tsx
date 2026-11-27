@@ -35,6 +35,7 @@ export function DitherFigure({
   radius = 90,
   parallax = 0,
   gamma = 1,
+  blackPoint = 0.08,
   align = "center",
   tone = "ink",
   className,
@@ -54,6 +55,8 @@ export function DitherFigure({
   parallax?: number;
   /** >1 darkens mid-tones (fewer dots), <1 brightens. */
   gamma?: number;
+  /** Luminance (0–1) treated as pure black, so background noise never becomes dots. */
+  blackPoint?: number;
   align?: "left" | "center" | "right";
   tone?: "ink" | "brand";
   className?: string;
@@ -128,9 +131,11 @@ export function DitherFigure({
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const i = (r * cols + c) * 4;
-          const lum =
+          const raw =
             ((0.2126 * data[i]! + 0.7152 * data[i + 1]! + 0.0722 * data[i + 2]!) / 255) *
             (data[i + 3]! / 255);
+          // Black point: near-black background noise and faint edge lines stay empty.
+          const lum = Math.max(0, (raw - blackPoint) / (1 - blackPoint));
           const t = (BAYER[(r % 4) * 4 + (c % 4)]! + 0.5) / 16;
           if (Math.pow(lum, gamma) > t) {
             px.push(c * cell);
@@ -355,7 +360,7 @@ export function DitherFigure({
       img.onload = null;
       img.onerror = null;
     };
-  }, [src, cell, effect, radius, parallax, gamma, align, tone]);
+  }, [src, cell, effect, radius, parallax, gamma, blackPoint, align, tone]);
 
   const decorative = alt === "";
 

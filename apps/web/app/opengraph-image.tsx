@@ -38,9 +38,9 @@ export default async function OpenGraphImage() {
           <img
             src={art}
             alt=""
-            width={630}
-            height={630}
-            style={{ position: "absolute", right: 0, top: 0, width: 630, height: 630, objectFit: "cover" }}
+            width={560}
+            height={560}
+            style={{ position: "absolute", right: 8, top: 35, width: 560, height: 560 }}
           />
         )}
         <div
@@ -49,7 +49,7 @@ export default async function OpenGraphImage() {
             flexDirection: "column",
             justifyContent: "space-between",
             padding: "64px 72px",
-            width: art ? 720 : "100%",
+            width: art ? 640 : "100%",
             height: "100%",
           }}
         >
@@ -57,12 +57,12 @@ export default async function OpenGraphImage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
             <div
               style={{
-                fontSize: 76,
+                fontSize: art ? 60 : 76,
                 lineHeight: 1,
                 letterSpacing: -3,
                 fontFamily: "sans-serif",
                 fontWeight: 600,
-                maxWidth: 640,
+                maxWidth: art ? 500 : 640,
               }}
             >
               Releases that still verify after Q-Day.
@@ -73,12 +73,12 @@ export default async function OpenGraphImage() {
                 background: "#daff52",
                 color: "#0a0a0a",
                 padding: "14px 22px",
-                fontSize: 20,
-                letterSpacing: 5,
+                fontSize: art ? 16 : 20,
+                letterSpacing: art ? 4 : 5,
                 alignSelf: "flex-start",
               }}
             >
-              SHA3-256 · ML-DSA-87 · CHECKED ON-CHAIN
+              {art ? "ML-DSA-87 · CHECKED ON-CHAIN" : "SHA3-256 · ML-DSA-87 · CHECKED ON-CHAIN"}
             </div>
           </div>
         </div>
