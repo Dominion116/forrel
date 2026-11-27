@@ -2,6 +2,7 @@ import type {
   EvmWindowStatus,
   Hex,
   Page,
+  PqcKeyStatus,
   Project,
   ProjectSummary,
   RegisterInput,
@@ -30,6 +31,8 @@ export interface ChainClient {
   findByArtifact(hash: Hex): Promise<Release[]>;
   recheckSignature(releaseId: bigint): Promise<{ valid: boolean; checkedAtBlock: bigint }>;
   getWindowStatus(addr: Hex): Promise<EvmWindowStatus>;
+  /** `pqcKeyStatus(addr)`: is an ML-DSA-87 key registered and possession-proven for this account? */
+  getKeyStatus(addr: Hex): Promise<PqcKeyStatus>;
 
   // Write operations (QoreX)
   registerProject(input: RegisterInput): Promise<TxResult>;
