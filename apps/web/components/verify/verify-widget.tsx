@@ -4,7 +4,7 @@ import type { Hex } from "@forrel/core";
 import { sha3_256 } from "@noble/hashes/sha3";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils";
 import { FileUp } from "lucide-react";
-import { useId, useMemo, useRef, useState, type DragEvent, type FormEvent } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type DragEvent, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { getChainClient } from "@/lib/chain";
@@ -38,10 +38,24 @@ function formatBytes(n: number) {
  * Web Worker) or paste a hash, then read the registry with a read-only call.
  * Shared by the landing page (compact) and /app/verify.
  */
-export function VerifyWidget({ className }: { className?: string }) {
+export function VerifyWidget({
+  className,
+  initialHash,
+}: {
+  className?: string;
+  /** Prefill and check this hash on mount (e.g. /app/verify?hash=…). */
+  initialHash?: string;
+}) {
   const [state, setState] = useState<State>({ phase: "idle" });
   const [dragging, setDragging] = useState(false);
-  const [pasted, setPasted] = useState("");
+  const [pasted, setPasted] = useState(initialHash ?? "");
+  const ranInitial = useRef(false);
+  useEffect(() => {
+    if (!initialHash || ranInitial.current) return;
+    ranInitial.current = true;
+    runHash(initialHash, "linked hash");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialHash]);
   const [pasteError, setPasteError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const lastRun = useRef<(() => void) | null>(null);
