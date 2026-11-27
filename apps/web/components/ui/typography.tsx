@@ -1,6 +1,7 @@
 import Link from "next/link";
 import * as React from "react";
 
+import { Scramble } from "@/components/motion/scramble";
 import { ArrowRight, ArrowUpRight } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -19,15 +20,22 @@ export function Section({
 }: React.ComponentProps<"section"> & { divider?: boolean }) {
   return (
     <section
-      className={cn("py-20 sm:py-28", divider && "border-t border-dashed border-hairline", className)}
+      data-line={divider ? "" : undefined}
+      className={cn(
+        "py-20 sm:py-28",
+        // The dashed rule is a pseudo-element so the motion system can draw it in.
+        divider &&
+          "relative before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:border-t before:border-dashed before:border-hairline",
+        className,
+      )}
       {...props}
     />
   );
 }
 
-/** Pixel uppercase kicker: "THE CHALLENGE". Use it only where it encodes a real section name. */
+/** Pixel uppercase kicker: "THE CHALLENGE". Wipes in from the left when scrolled into view. */
 export function Eyebrow({ className, ...props }: React.ComponentProps<"p">) {
-  return <p className={cn("text-eyebrow text-foreground/80", className)} {...props} />;
+  return <p data-reveal="wipe" className={cn("text-eyebrow text-foreground/80", className)} {...props} />;
 }
 
 /**
@@ -39,23 +47,28 @@ export function PixelHeading({
   main,
   as: Tag = "h2",
   size = "md",
+  scramble = true,
   className,
 }: {
   lead?: React.ReactNode;
   main: React.ReactNode;
   as?: "h1" | "h2" | "h3";
   size?: "sm" | "md";
+  /** Decrypt the text from hex noise when it scrolls into view (string lines only). */
+  scramble?: boolean;
   className?: string;
 }) {
+  const line = (node: React.ReactNode, delay: number) =>
+    scramble && typeof node === "string" ? <Scramble text={node} delay={delay} /> : node;
   return (
     <Tag className={cn(size === "md" ? "text-display" : "text-display-sm", className)}>
       {lead ? (
         <>
-          <span className="block text-muted-foreground">{lead}</span>
-          <span className="block">{main}</span>
+          <span className="block text-muted-foreground">{line(lead, 0)}</span>
+          <span className="block">{line(main, 220)}</span>
         </>
       ) : (
-        main
+        line(main, 0)
       )}
     </Tag>
   );

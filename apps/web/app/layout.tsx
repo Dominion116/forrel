@@ -3,6 +3,7 @@ import { GeistPixelGrid, GeistPixelSquare } from "geist/font/pixel";
 import { Geist, IBM_Plex_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 
+import { MotionObserver } from "@/components/motion/motion-observer";
 import { Providers } from "@/lib/wallet/providers";
 import "./globals.css";
 
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     >
       <body className="min-h-screen bg-background text-foreground">
         <Providers>{children}</Providers>
+        <MotionObserver />
       </body>
     </html>
   );

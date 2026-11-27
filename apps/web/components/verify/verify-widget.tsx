@@ -165,10 +165,20 @@ export function VerifyWidget({
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         className={cn(
-          "relative flex flex-col items-center justify-center gap-4 border border-dashed px-6 py-12 text-center transition-colors duration-150 sm:py-16",
-          dragging ? "border-brand-ink bg-surface-2" : "border-control bg-surface",
+          "group/zone relative flex flex-col items-center justify-center gap-4 overflow-hidden border border-dashed px-6 py-12 text-center transition-colors duration-150 sm:py-16",
+          dragging ? "border-brand-ink bg-surface-2" : "border-control bg-surface hover:border-brand-ink",
         )}
       >
+        {/* Scanner line: sweeps while hovered, dragged over or hashing */}
+        <span
+          aria-hidden="true"
+          className={cn(
+            "animate-scan-zone pointer-events-none absolute inset-x-0 h-px bg-brand-ink shadow-[0_0_18px_2px_var(--brand-ink)] transition-opacity duration-300",
+            dragging || state.phase === "hashing" || state.phase === "looking"
+              ? "opacity-100"
+              : "opacity-0 group-hover/zone:opacity-100",
+          )}
+        />
         <FileUp aria-hidden="true" className={cn("size-8", dragging ? "text-brand-ink" : "text-muted-foreground")} />
         <div className="flex flex-col gap-1">
           <p className="text-title">Drop a file to verify</p>

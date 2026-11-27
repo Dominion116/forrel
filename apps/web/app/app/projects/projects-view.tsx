@@ -80,7 +80,7 @@ export function ProjectsView() {
             <span>Latest</span>
             <span>Key</span>
           </div>
-          <ul className="border-t border-dashed border-hairline">
+          <ul data-stagger="" className="border-t border-dashed border-hairline">
             {shown.map((p) => (
               <ProjectRow key={p.projectId} project={p} />
             ))}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { DitherFigure } from "@/components/illustration/dither-figure";
+import { HashTicker } from "@/components/landing/hash-ticker";
 import { LiveProofSection } from "@/components/landing/live-proof-section";
 import { LiveStrip } from "@/components/landing/live-strip";
 import { SiteFooter, FIGURE_NOTES } from "@/components/landing/site-footer";
@@ -10,7 +11,11 @@ import { StepFigure } from "@/components/landing/step-figure";
 import { Accordion, AccordionItem } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Button } from "@/components/ui/button";
-import { Card, CardGrid } from "@/components/ui/card";
+import { Marquee } from "@/components/motion/marquee";
+import { ScrollTrack } from "@/components/motion/scroll-track";
+import { SplitText } from "@/components/motion/split-text";
+import { TiltCard } from "@/components/motion/tilt-card";
+import { CardGrid } from "@/components/ui/card";
 import { CodeSnippet } from "@/components/ui/code-snippet";
 import { ArrowList, Row, RowList, Step, StepList } from "@/components/ui/list";
 import { BrandBand, Callout } from "@/components/ui/notice";
@@ -25,6 +30,18 @@ export const metadata: Metadata = {
 };
 
 /* ---------- Content ---------- */
+
+const HERO_WORDS = "Releases that still verify after Q-Day.".split(" ");
+
+const BAND_WORDS = ["Verify without a wallet", "No upload", "Hashed on your device", "Checked on-chain"];
+const BAND_FACTS = [
+  "SHA3-256 fingerprints",
+  "ML-DSA-87 signatures",
+  "pqcVerify at 0x…0a01",
+  "Diana testnet · chain 9800",
+  "Revocations stay visible",
+  "Open source · MIT",
+];
 
 const problems = [
   {
@@ -135,7 +152,7 @@ export default function LandingPage() {
             gamma={1.6}
             parallax={10}
             radius={110}
-            className="pointer-events-none absolute top-[16%] -left-[5%] hidden w-[30vw] max-w-[560px] lg:block"
+            className="hero-hand-l pointer-events-none absolute top-[16%] -left-[5%] hidden w-[30vw] max-w-[560px] lg:block"
           />
           <DitherFigure
             src="/illustrations/hero-hand-right.png"
@@ -145,33 +162,50 @@ export default function LandingPage() {
             gamma={1.6}
             parallax={-10}
             radius={110}
-            className="pointer-events-none absolute top-[16%] -right-[5%] hidden w-[30vw] max-w-[560px] lg:block"
+            className="hero-hand-r pointer-events-none absolute top-[16%] -right-[5%] hidden w-[30vw] max-w-[560px] lg:block"
+          />
+
+          {/* One-time scanner sweep down the hero after the headline lands */}
+          <span
+            aria-hidden="true"
+            className="hero-scan pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-brand-ink shadow-[0_0_28px_6px_var(--brand-ink)]"
           />
 
           <Container className="relative flex flex-col items-center gap-8 text-center">
-            <Eyebrow className="tracking-[0.5em]">Post-quantum release log</Eyebrow>
+            <p className="text-eyebrow hero-wipe tracking-[0.5em] text-foreground/80" style={{ animationDelay: "0.05s" }}>
+              Post-quantum release log
+            </p>
 
-            <div className="relative">
+            <div className="relative [perspective:900px]">
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute -top-10 right-0 font-pixel-grid sm:-top-6 text-[clamp(2.5rem,1rem+6vw,6rem)] leading-none text-dim select-none sm:-right-10"
+                className="hero-ghost pointer-events-none absolute -top-10 right-0 font-pixel-grid sm:-top-6 text-[clamp(2.5rem,1rem+6vw,6rem)] leading-none text-dim select-none sm:-right-10"
               >
                 Q-Day
               </span>
-              <h1 className="text-hero relative max-w-[14ch]">Releases that still verify after Q-Day.</h1>
+              <h1 className="text-hero relative max-w-[14ch]">
+                {HERO_WORDS.map((w, i) => (
+                  <span key={i}>
+                    <span className="hero-word" style={{ ["--wi" as string]: i }}>
+                      {w}
+                    </span>
+                    {i < HERO_WORDS.length - 1 ? " " : ""}
+                  </span>
+                ))}
+              </h1>
             </div>
 
-            <p className="flex items-center gap-2 text-body-sm text-muted-foreground">
+            <p className="hero-rise flex items-center gap-2 text-body-sm text-muted-foreground" style={{ animationDelay: "0.7s" }}>
               on <span className="font-pixel tracking-[0.2em] text-foreground uppercase">QoreChain</span>
             </p>
 
-            <p className="max-w-xl text-body text-muted-foreground">
+            <p className="hero-rise max-w-xl text-body text-muted-foreground" style={{ animationDelay: "0.8s" }}>
               Forrel records every release&apos;s fingerprint with a post-quantum signature, checked
               on-chain. Drop any file to see if it&apos;s genuine.
             </p>
 
-            {/* Lime fact bar (the sample's date / prize strip) */}
-            <div className="text-eyebrow flex w-full max-w-3xl flex-col items-center gap-2 bg-brand px-6 py-3 text-on-brand sm:flex-row sm:justify-between">
+            {/* Lime fact bar (the sample's date / prize strip), wiped in */}
+            <div className="hero-wipe text-eyebrow flex w-full max-w-3xl flex-col items-center gap-2 bg-brand px-6 py-3 text-on-brand sm:flex-row sm:justify-between" style={{ animationDelay: "0.95s" }}>
               <span>SHA3-256</span>
               <span aria-hidden="true" className="hidden sm:inline">·</span>
               <span>ML-DSA-87</span>
@@ -179,9 +213,11 @@ export default function LandingPage() {
               <span>Checked by pqcVerify</span>
             </div>
 
-            <LiveStrip className="w-full max-w-3xl" />
+            <div className="hero-rise w-full max-w-3xl" style={{ animationDelay: "1.15s" }}>
+              <LiveStrip />
+            </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="hero-rise flex flex-col gap-3 sm:flex-row" style={{ animationDelay: "1.3s" }}>
               <Button asChild size="lg">
                 <a href="#verify">
                   Verify a file <ArrowRight />
@@ -193,6 +229,9 @@ export default function LandingPage() {
             </div>
           </Container>
         </section>
+
+        {/* Live ticker of the latest signed releases */}
+        <HashTicker />
 
         {/* ---------- 2. Verify widget ---------- */}
         <Section id="verify" className="scroll-mt-16">
@@ -216,7 +255,9 @@ export default function LandingPage() {
                 error you can retry.
               </Footnote>
             </div>
-            <VerifyWidget />
+            <div data-reveal="right" style={{ ["--delay" as string]: "150ms" }}>
+              <VerifyWidget />
+            </div>
           </Container>
         </Section>
 
@@ -227,17 +268,17 @@ export default function LandingPage() {
               <div className="flex flex-col gap-6">
                 <Eyebrow>The problem</Eyebrow>
                 <PixelHeading lead="Signed today," main="Forged tomorrow." />
-                <p className="max-w-2xl text-body-lg">
+                <p data-reveal="blur" className="max-w-2xl text-body-lg">
                   Every software and firmware update is trusted because of a signature. Most of
                   those signatures won&apos;t survive a quantum computer.
                 </p>
-                <p className="max-w-2xl text-body text-muted-foreground">
+                <p data-reveal="blur" style={{ ["--delay" as string]: "150ms" }} className="max-w-2xl text-body text-muted-foreground">
                   The day a large enough quantum computer exists is called Q-Day. Updates signed
                   with classical keys can be forged after it, and the devices checking them will
                   still be in the field.
                 </p>
               </div>
-              <figure className="flex flex-col gap-4 lg:w-[340px]">
+              <figure data-reveal="right" className="flex flex-col gap-4 lg:w-[340px]">
                 {/* [2] The statue crumbles as you scroll past it */}
                 <DitherFigure
                   src="/illustrations/problem-statue.png"
@@ -254,15 +295,15 @@ export default function LandingPage() {
               </figure>
             </div>
 
-            <CardGrid cols={3}>
+            <CardGrid cols={3} data-stagger="">
               {problems.map((p, i) => (
-                <Card key={p.title} className="gap-4 p-6 sm:p-8">
+                <TiltCard key={p.title} className="gap-4 p-6 sm:p-8">
                   <PixelNumeral tone="brand" className="text-3xl">
                     {String(i + 1).padStart(2, "0")}
                   </PixelNumeral>
                   <h3 className="text-title">{p.title}</h3>
                   <p className="text-body-sm text-muted-foreground">{p.body}</p>
-                </Card>
+                </TiltCard>
               ))}
             </CardGrid>
           </Container>
@@ -283,36 +324,43 @@ export default function LandingPage() {
                 it exclusively by 2030. ML-DSA-87 is one of its approved signature algorithms.
               </Footnote>
             </div>
-            <RowList>
-              <Row
-                index="2025"
-                tone="past"
-                title="Prefer post-quantum signing"
-                detail="CNSA 2.0: support and prefer quantum-resistant software and firmware signatures."
-              />
-              <Row
-                index="2026"
-                title="You ship a router"
-                detail="It will check update signatures for the next ten years."
-                trailing={<Badge variant="brand">Today</Badge>}
-              />
-              <Row
-                index="2030"
-                title="Post-quantum signing only"
-                detail="Software and firmware signing must use quantum-resistant algorithms exclusively."
-              />
-              <Row
-                index="2035"
-                title="Everything else follows"
-                detail="The target for national security systems to finish the move."
-              />
-              <Row
-                index="2036"
-                title="Your router is still in the field"
-                detail="Is the next update it accepts really from you?"
-                trailing={<Badge variant="outline">Due</Badge>}
-              />
-            </RowList>
+            {/* A lime rail fills as you scroll and lights each year it reaches */}
+            <ScrollTrack>
+              <RowList>
+                <Row
+                  trackItem
+                  index="2025"
+                  title="Prefer post-quantum signing"
+                  detail="CNSA 2.0: support and prefer quantum-resistant software and firmware signatures."
+                />
+                <Row
+                  trackItem
+                  index="2026"
+                  title="You ship a router"
+                  detail="It will check update signatures for the next ten years."
+                  trailing={<Badge variant="brand">Today</Badge>}
+                />
+                <Row
+                  trackItem
+                  index="2030"
+                  title="Post-quantum signing only"
+                  detail="Software and firmware signing must use quantum-resistant algorithms exclusively."
+                />
+                <Row
+                  trackItem
+                  index="2035"
+                  title="Everything else follows"
+                  detail="The target for national security systems to finish the move."
+                />
+                <Row
+                  trackItem
+                  index="2036"
+                  title="Your router is still in the field"
+                  detail="Is the next update it accepts really from you?"
+                  trailing={<Badge variant="outline">Due</Badge>}
+                />
+              </RowList>
+            </ScrollTrack>
           </Container>
         </Section>
 
@@ -323,19 +371,19 @@ export default function LandingPage() {
               <Eyebrow>How it works</Eyebrow>
               <PixelHeading lead="Three steps," main="Nothing unsigned gets in." />
             </div>
-            <CardGrid cols={3}>
+            <CardGrid cols={3} data-stagger="">
               {steps.map((s, i) => (
-                <Card key={s.kind} className="overflow-hidden">
+                <TiltCard key={s.kind} max={5}>
                   <StepFigure kind={s.kind} />
                   <div className="flex flex-col gap-3 p-6 sm:p-8">
                     <p className="text-body-sm text-brand-ink">{String(i + 1).padStart(2, "0")}</p>
                     <h3 className="text-title">{s.title}</h3>
                     <p className="text-body-sm text-muted-foreground">{s.body}</p>
                   </div>
-                </Card>
+                </TiltCard>
               ))}
             </CardGrid>
-            <Callout>
+            <Callout data-reveal="left">
               Rotating a key and revoking a release work the same way: each is an ML-DSA-87 signed
               message, checked by pqcVerify before the contract changes anything.
             </Callout>
@@ -343,20 +391,39 @@ export default function LandingPage() {
         </Section>
 
         {/* ---------- Lime band ---------- */}
-        <BrandBand>
+        <BrandBand className="overflow-hidden">
+          {/* Two counter-scrolling pixel tickers frame the band */}
+          <Marquee seconds={28} className="border-b border-on-brand/20 py-3">
+            {BAND_WORDS.map((w) => (
+              <span key={w} className="flex items-center gap-6 px-6 font-pixel text-2xl whitespace-nowrap uppercase sm:text-3xl">
+                {w}
+                <span aria-hidden="true">✦</span>
+              </span>
+            ))}
+          </Marquee>
           <Container className="flex flex-col gap-8 py-14 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-col gap-3">
+            <div data-reveal="left" className="flex flex-col gap-3">
               <p className="text-display-sm">Verify without a wallet</p>
               <p className="max-w-xl text-body">
                 Anyone can check a file. Only maintainers need a QoreX wallet, and only to publish.
               </p>
             </div>
-            <Button asChild variant="inverse" size="lg" className="self-start md:self-auto">
-              <a href="#verify">
-                Verify a file <ArrowRight />
-              </a>
-            </Button>
+            <div data-reveal="right" className="self-start md:self-auto">
+              <Button asChild variant="inverse" size="lg">
+                <a href="#verify">
+                  Verify a file <ArrowRight />
+                </a>
+              </Button>
+            </div>
           </Container>
+          <Marquee seconds={34} reverse className="border-t border-on-brand/20 py-2">
+            {BAND_FACTS.map((w) => (
+              <span key={w} className="text-eyebrow flex items-center gap-6 px-6 whitespace-nowrap">
+                {w}
+                <span aria-hidden="true">·</span>
+              </span>
+            ))}
+          </Marquee>
         </BrandBand>
 
         {/* ---------- 6. Live proof (inverted, like the sample's pale prize block) ---------- */}
@@ -374,9 +441,9 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-6 bg-brand p-6 text-on-brand sm:p-8">
+            <div data-reveal="zoom" className="flex flex-col gap-6 bg-brand p-6 text-on-brand sm:p-8">
               <p className="text-eyebrow">Post-quantum</p>
-              <ol className="grid gap-6 md:grid-cols-3">
+              <ol data-stagger="" className="grid gap-6 md:grid-cols-3">
                 {[
                   ["ML-DSA-87 release signatures", "FIPS 204, the highest security level."],
                   ["SHA3-256 fingerprints", "Hashes stay safe; Grover's algorithm only halves the margin."],
@@ -393,8 +460,8 @@ export default function LandingPage() {
               </ol>
             </div>
 
-            <CardGrid cols={2}>
-              <Card className="gap-4 p-6 sm:p-8">
+            <CardGrid cols={2} data-stagger="">
+              <TiltCard className="gap-4 p-6 sm:p-8">
                 <Badge variant="outline" className="self-start">
                   Classical
                 </Badge>
@@ -403,8 +470,8 @@ export default function LandingPage() {
                   It only pays gas. It can&apos;t forge a release, because the contract checks the
                   ML-DSA-87 signature before accepting anything.
                 </p>
-              </Card>
-              <Card className="gap-4 p-6 sm:p-8">
+              </TiltCard>
+              <TiltCard className="gap-4 p-6 sm:p-8">
                 <Badge variant="warning" className="self-start">
                   Testnet only
                 </Badge>
@@ -413,7 +480,7 @@ export default function LandingPage() {
                   Forrel runs on QoreChain&apos;s Diana testnet until the precompile ships to
                   mainnet.
                 </p>
-              </Card>
+              </TiltCard>
             </CardGrid>
           </Container>
         </Section>
@@ -426,18 +493,19 @@ export default function LandingPage() {
                 <Eyebrow>For your pipeline</Eyebrow>
                 <PixelHeading lead="Three commands," main="From CI to chain." />
               </div>
-              <StepList>
+              <StepList data-stagger="">
                 <Step n={1} title="Sign, offline if you like">
                   <CodeSnippet
+                    typing
                     label="sign command"
                     code="npx forrel sign ./dist/app.bin --project acme-router --version 2.4.1"
                   />
                 </Step>
                 <Step n={2} title="Publish from CI">
-                  <CodeSnippet label="publish command" code="npx forrel publish ./app.bin.forrel.json" />
+                  <CodeSnippet typing label="publish command" code="npx forrel publish ./app.bin.forrel.json" />
                 </Step>
                 <Step n={3} title="Verify anywhere">
-                  <CodeSnippet label="verify command" code="npx forrel verify ./app.bin" />
+                  <CodeSnippet typing label="verify command" code="npx forrel verify ./app.bin" />
                   <p className="text-body-sm text-muted-foreground">
                     Exit code 0 verified, 1 unknown, 2 revoked, 3 error.
                   </p>
@@ -450,7 +518,7 @@ export default function LandingPage() {
                 <Eyebrow>What gets signed</Eyebrow>
                 <PixelHeading lead="One message," main="Every field bound." />
               </div>
-              <RowList>
+              <RowList data-stagger="">
                 {messageFields.map(([n, field, detail]) => (
                   <Row
                     key={n}
@@ -461,7 +529,7 @@ export default function LandingPage() {
                   />
                 ))}
               </RowList>
-              <Callout>
+              <Callout data-reveal="left">
                 The submitter key only pays gas. Publish, rotate and revoke all need a valid ML-DSA-87
                 signature.
               </Callout>
@@ -476,9 +544,9 @@ export default function LandingPage() {
               <Eyebrow>Who it&apos;s for</Eyebrow>
               <PixelHeading lead="Built for" main="Whoever ships bytes." />
             </div>
-            <CardGrid cols={4}>
+            <CardGrid cols={4} data-stagger="">
               {audiences.map((a) => (
-                <Card key={a.n} variant={a.featured ? "featured" : "default"} className="gap-5 p-6">
+                <TiltCard key={a.n} variant={a.featured ? "featured" : "default"} max={9} className="gap-5 p-6">
                   <div className="flex items-start justify-between gap-3">
                     <PixelNumeral tone={a.featured ? "ink" : "dim"} className="text-5xl in-data-[variant=featured]:text-on-brand">
                       {a.n}
@@ -488,7 +556,7 @@ export default function LandingPage() {
                   <h3 className="text-title">{a.title}</h3>
                   <p className="text-body-sm opacity-80">{a.body}</p>
                   <ArrowList items={a.items} className="mt-auto [&_li]:text-body-sm" />
-                </Card>
+                </TiltCard>
               ))}
             </CardGrid>
           </Container>
@@ -510,7 +578,7 @@ export default function LandingPage() {
                 ]}
               />
             </div>
-            <Accordion>
+            <Accordion data-stagger="">
               {faqs.map(([q, a]) => (
                 <AccordionItem key={q} question={q}>
                   {a}
@@ -524,12 +592,14 @@ export default function LandingPage() {
         <section className="bg-dot-grid border-t border-dashed border-hairline py-24 sm:py-32">
           <Container className="grid items-end gap-12 lg:grid-cols-[1fr_auto]">
             <div className="flex flex-col gap-8">
-              <h2 className="text-display-xl">Verify it.</h2>
-              <p className="max-w-md text-body text-muted-foreground">
+              <h2 className="text-display-xl">
+                <SplitText text="Verify it." />
+              </h2>
+              <p data-reveal="blur" style={{ ["--delay" as string]: "450ms" }} className="max-w-md text-body text-muted-foreground">
                 Hash locally. Sign with ML-DSA-87. Check on-chain. The same answer in ten years as
                 today.
               </p>
-              <div className="flex flex-col gap-3 sm:flex-row">
+              <div data-reveal="up" style={{ ["--delay" as string]: "600ms" }} className="flex flex-col gap-3 sm:flex-row">
                 <Button asChild size="lg">
                   <a href="#verify">
                     Verify a file <ArrowRight />
@@ -540,7 +610,7 @@ export default function LandingPage() {
                 </Button>
               </div>
             </div>
-            <figure className="flex flex-col gap-4 lg:w-[320px]">
+            <figure data-reveal="zoom" className="flex flex-col gap-4 lg:w-[320px]">
               {/* [3] Interactive: the figure scatters around the pointer */}
               <DitherFigure
                 src="/illustrations/closer-figure.png"

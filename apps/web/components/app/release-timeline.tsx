@@ -12,7 +12,7 @@ import { releaseHref } from "./release-table";
 /** Release history, newest first, on a dashed rail: version, hash, time, status, key epoch. */
 export function ReleaseTimeline({ releases }: { releases: Release[] }) {
   return (
-    <ol className="relative flex flex-col border-l border-dashed border-hairline">
+    <ol data-stagger="" className="relative flex flex-col border-l border-dashed border-hairline">
       {releases.map((r) => (
         <li key={r.releaseId.toString()} className="relative flex flex-col gap-2 pb-8 pl-6 last:pb-0">
           <span
