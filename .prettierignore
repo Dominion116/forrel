@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+dist
+coverage
+contracts/out
+contracts/cache
+contracts/broadcast
+contracts/lib
+.env
+.env.local
+.env.*.local
+*.tsbuildinfo
