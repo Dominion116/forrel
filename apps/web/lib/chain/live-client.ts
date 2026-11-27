@@ -2,6 +2,7 @@ import type {
   EvmWindowStatus,
   Hex,
   Page,
+  PqcKeyStatus,
   Project,
   ProjectSummary,
   RegisterInput,
@@ -46,6 +47,9 @@ export class LiveChainClient implements ChainClient {
     return notImplemented();
   }
   recheckSignature(_releaseId: bigint): Promise<{ valid: boolean; checkedAtBlock: bigint }> {
+    return notImplemented();
+  }
+  getKeyStatus(_addr: Hex): Promise<PqcKeyStatus> {
     return notImplemented();
   }
   getWindowStatus(_addr: Hex): Promise<EvmWindowStatus> {
