@@ -25,7 +25,7 @@ function makeFingerprint(seed: number): Hex {
 export const SHARED_ARTIFACT_HASH: Hex =
   "0x4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a";
 
-const BASE_TIME = 1_764_200_000; // 2026-11-27 reference timestamp (seconds)
+const BASE_TIME = 1_795_737_600; // 2026-11-27T00:00:00Z reference timestamp (seconds)
 
 interface ProjectSeed {
   slug: string;

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { GeistPixelGrid, GeistPixelSquare } from "geist/font/pixel";
 import { Geist, IBM_Plex_Mono } from "next/font/google";
 import type { ReactNode } from "react";
@@ -19,10 +19,39 @@ const plexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
 });
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "http://localhost:3000");
+
+const description =
+  "Post-quantum release and firmware signing log on QoreChain. Every release is signed with ML-DSA-87 and checked on-chain. Drop any file to see if it's genuine.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Forrel — Releases that still verify after Q-Day",
-  description:
-    "Post-quantum release and firmware signing log on QoreChain, verified on-chain with ML-DSA-87.",
+  description,
+  applicationName: "Forrel",
+  openGraph: {
+    type: "website",
+    siteName: "Forrel",
+    title: "Forrel — Releases that still verify after Q-Day",
+    description,
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Forrel — Releases that still verify after Q-Day",
+    description,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+    { media: "(prefers-color-scheme: light)", color: "#f2f2f2" },
+  ],
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

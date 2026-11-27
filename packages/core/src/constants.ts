@@ -1,4 +1,4 @@
-import type { Hex, RevokeReasonCode } from "./types.js";
+import type { Hex, RevokeReasonCode } from "./types";
 
 /** QoreChain Diana testnet EVM chain ID. */
 export const DIANA_CHAIN_ID = 9800;
