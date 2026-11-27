@@ -132,6 +132,7 @@ export default function LandingPage() {
             aspect={4 / 3}
             align="left"
             cell={4}
+            gamma={1.6}
             parallax={10}
             radius={110}
             className="pointer-events-none absolute top-[16%] -left-[5%] hidden w-[30vw] max-w-[560px] lg:block"
@@ -141,6 +142,7 @@ export default function LandingPage() {
             aspect={4 / 3}
             align="right"
             cell={4}
+            gamma={1.6}
             parallax={-10}
             radius={110}
             className="pointer-events-none absolute top-[16%] -right-[5%] hidden w-[30vw] max-w-[560px] lg:block"
@@ -243,6 +245,7 @@ export default function LandingPage() {
                   aspect={3 / 4}
                   effect="crumble"
                   cell={4}
+                  gamma={1.6}
                   className="mx-auto w-[260px] sm:w-[300px] lg:w-full"
                 />
                 <figcaption>
@@ -544,6 +547,7 @@ export default function LandingPage() {
                 alt="A marble hand holding up a balance scale, drawn in pixels"
                 aspect={4 / 5}
                 cell={4}
+                gamma={1.2}
                 radius={80}
                 className="mx-auto w-[240px] lg:w-full"
               />
