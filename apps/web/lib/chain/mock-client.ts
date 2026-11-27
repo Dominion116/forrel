@@ -1,23 +1,60 @@
-import type {
-  EvmWindowStatus,
-  Hex,
-  Page,
-  Project,
-  ProjectSummary,
-  RegisterInput,
-  RegistryStats,
-  Release,
-  RevokeInput,
-  RotateInput,
-  SignedBundle,
-  TxResult,
+import {
+  DIANA_CHAIN_ID,
+  ML_DSA_87_PUBKEY_BYTES,
+  ML_DSA_87_SIGNATURE_BYTES,
+  PQC_VERIFY_ADDRESS,
+  RegistryError,
+  SLUG_REGEX,
+  demoSeed,
+  encodePublishMsg,
+  encodeRevokeMsg,
+  encodeRotateMsg,
+  fromBase64,
+  fromHex,
+  keyFingerprint,
+  keypairFromSeed,
+  projectIdOf,
+  signMessage,
+  toHex,
+  verifyMessage,
+  versionHashOf,
+  type EvmWindowStatus,
+  type Hex,
+  type KeyPair,
+  type Page,
+  type PqcKeyStatus,
+  type Project,
+  type ProjectSummary,
+  type RegisterInput,
+  type RegistryStats,
+  type Release,
+  type RevokeInput,
+  type RotateInput,
+  type SignedBundle,
+  type TxResult,
 } from "@forrel/core";
-import { createFixtureData } from "./fixtures";
+
+import { getMockWallet } from "@/lib/wallet/mock-wallet";
+
+import { DEMO_FINGERPRINTS, LAZY_KEY, MOCK_REGISTRY, createFixtureData } from "./fixtures";
 import type { ChainClient } from "./types";
 
+function randomHex(bytes: number): Hex {
+  const b = new Uint8Array(bytes);
+  crypto.getRandomValues(b);
+  return toHex(b);
+}
+
+function copyProject(p: Project): Project {
+  return { ...p, rotations: [...p.rotations] };
+}
+
 /**
- * Deterministic in-memory registry adapter for Phases 0-2 UI development.
- * Initialized with 6 projects, 30 releases, 2 revoked releases, and 1 shared artifact hash.
+ * Deterministic in-memory registry for mock mode (Phases 0–2).
+ *
+ * It behaves like ForrelRegistry: writes are authorised by real ML-DSA-87 signatures,
+ * checked with the same message encoding the contract will use, and failures throw the
+ * contract's custom errors. Fixture projects use public demo keys derived on first use.
  */
 export class MockChainClient implements ChainClient {
   readonly mode = "mock" as const;
@@ -25,6 +62,7 @@ export class MockChainClient implements ChainClient {
   private projects: Project[];
   private releases: Release[];
   private latestBlock = 1_482_910n;
+  private keyCache = new Map<string, KeyPair>();
 
   constructor() {
     const { projects, releases } = createFixtureData();
@@ -32,13 +70,72 @@ export class MockChainClient implements ChainClient {
     this.releases = releases;
   }
 
+  /* ---------- demo keys ---------- */
+
+  private demoKey(slug: string, role: "signing" | "recovery", epoch: number): KeyPair | null {
+    if (!DEMO_FINGERPRINTS[slug]) return null;
+    const id = `${slug}/${role}/${epoch}`;
+    let pair = this.keyCache.get(id);
+    if (!pair) {
+      pair = keypairFromSeed(demoSeed(slug, role, epoch));
+      this.keyCache.set(id, pair);
+    }
+    return pair;
+  }
+
+  /** Fill in a fixture project's public keys the first time they are needed. */
+  private ensureKeys(p: Project) {
+    if (p.signingKeyHex === LAZY_KEY) {
+      const k = this.demoKey(p.slug, "signing", p.keyEpoch);
+      if (k) p.signingKeyHex = toHex(k.publicKey);
+    }
+    if (p.recoveryKeyHex === LAZY_KEY) {
+      const k = this.demoKey(p.slug, "recovery", 1);
+      if (k) p.recoveryKeyHex = toHex(k.publicKey);
+    }
+  }
+
+  /** Give a fixture release a real signature by its demo key, once. */
+  private ensureSignature(r: Release) {
+    if (r.signatureHex && r.signingKeyHex) return;
+    const k = this.demoKey(r.slug, "signing", r.keyEpoch);
+    if (!k) return;
+    const msg = encodePublishMsg({
+      chainId: DIANA_CHAIN_ID,
+      registry: MOCK_REGISTRY,
+      projectId: r.projectId,
+      seq: r.seq,
+      version: r.version,
+      artifactHash: r.artifactHash,
+      metaHash: r.metaHash,
+    });
+    r.signatureHex = toHex(signMessage(msg.bytes, k.secretKey));
+    r.signingKeyHex = toHex(k.publicKey);
+  }
+
+  private nextBlock(): bigint {
+    this.latestBlock += 1n;
+    return this.latestBlock;
+  }
+
+  private failIfScenario() {
+    if (getMockWallet().scenario === "tx-reverts") {
+      throw new RegistryError("PrecompileUnavailable", "mock scenario");
+    }
+  }
+
+  private findProjectById(projectId: Hex): Project {
+    const p = this.projects.find((x) => x.projectId.toLowerCase() === projectId.toLowerCase());
+    if (!p) throw new RegistryError("UnknownProject");
+    return p;
+  }
+
+  /* ---------- reads ---------- */
+
   async getStats(): Promise<RegistryStats> {
     const revokedCount = this.releases.filter((r) => r.revoked).length;
     const lastPublishedAt =
-      this.releases.length > 0
-        ? Math.max(...this.releases.map((r) => r.publishedAt))
-        : null;
-
+      this.releases.length > 0 ? Math.max(...this.releases.map((r) => r.publishedAt)) : null;
     return {
       projectCount: this.projects.length,
       releaseCount: this.releases.length,
@@ -49,8 +146,7 @@ export class MockChainClient implements ChainClient {
   }
 
   async listProjects(page: Page): Promise<ProjectSummary[]> {
-    const slice = this.projects.slice(page.offset, page.offset + page.limit);
-    return slice.map((p) => ({
+    return this.projects.slice(page.offset, page.offset + page.limit).map((p) => ({
       projectId: p.projectId,
       slug: p.slug,
       owner: p.owner,
@@ -62,134 +158,200 @@ export class MockChainClient implements ChainClient {
   }
 
   async getProject(slug: string): Promise<Project | null> {
-    return this.projects.find((p) => p.slug === slug) ?? null;
+    const p = this.projects.find((x) => x.slug === slug);
+    if (!p) return null;
+    this.ensureKeys(p);
+    return copyProject(p);
   }
 
   async listReleases(projectId: Hex, page: Page): Promise<Release[]> {
-    const matching = this.releases
+    return this.releases
       .filter((r) => r.projectId.toLowerCase() === projectId.toLowerCase())
-      .sort((a, b) => Number(b.seq - a.seq));
-    return matching.slice(page.offset, page.offset + page.limit);
+      .sort((a, b) => Number(b.seq - a.seq))
+      .slice(page.offset, page.offset + page.limit)
+      .map((r) => ({ ...r }));
   }
 
   async listRecentReleases(page: Page): Promise<Release[]> {
-    const sorted = [...this.releases].sort((a, b) => b.publishedAt - a.publishedAt);
-    return sorted.slice(page.offset, page.offset + page.limit);
+    return [...this.releases]
+      .sort((a, b) => b.publishedAt - a.publishedAt)
+      .slice(page.offset, page.offset + page.limit)
+      .map((r) => ({ ...r }));
   }
 
   async getReleaseById(releaseId: bigint): Promise<Release | null> {
-    return this.releases.find((r) => r.releaseId === releaseId) ?? null;
+    const r = this.releases.find((x) => x.releaseId === releaseId);
+    if (!r) return null;
+    this.ensureSignature(r);
+    return { ...r };
   }
 
   async findByArtifact(hash: Hex): Promise<Release[]> {
     const normalized = hash.toLowerCase();
-    return this.releases.filter((r) => r.artifactHash.toLowerCase() === normalized);
+    return this.releases.filter((r) => r.artifactHash.toLowerCase() === normalized).map((r) => ({ ...r }));
   }
 
-  async recheckSignature(
-    releaseId: bigint,
-  ): Promise<{ valid: boolean; checkedAtBlock: bigint }> {
-    const exists = this.releases.some((r) => r.releaseId === releaseId);
-    if (!exists) {
-      throw new Error(`Release ${releaseId.toString()} not found`);
-    }
-    this.latestBlock += 1n;
-    return { valid: true, checkedAtBlock: this.latestBlock };
+  /** Re-runs the ML-DSA-87 check, as `pqcVerify` would via eth_call. */
+  async recheckSignature(releaseId: bigint): Promise<{ valid: boolean; checkedAtBlock: bigint }> {
+    const r = this.releases.find((x) => x.releaseId === releaseId);
+    if (!r) throw new Error(`Release ${releaseId.toString()} not found`);
+    this.ensureSignature(r);
+    const msg = encodePublishMsg({
+      chainId: DIANA_CHAIN_ID,
+      registry: MOCK_REGISTRY,
+      projectId: r.projectId,
+      seq: r.seq,
+      version: r.version,
+      artifactHash: r.artifactHash,
+      metaHash: r.metaHash,
+    });
+    const valid =
+      Boolean(r.signatureHex && r.signingKeyHex) &&
+      verifyMessage(fromHex(r.signatureHex!), msg.bytes, fromHex(r.signingKeyHex!));
+    return { valid, checkedAtBlock: this.nextBlock() };
   }
 
   async getWindowStatus(_addr: Hex): Promise<EvmWindowStatus> {
+    const s = getMockWallet().scenario;
+    if (s === "no-window") {
+      return { found: false, live: false, remainingBlocks: 0n, remainingTxs: 0n, remainingValue: 0n, allowedTargets: [] };
+    }
     return {
       found: true,
-      live: true,
+      live: s !== "window-exhausted",
       remainingBlocks: 540n,
-      remainingTxs: 4n,
+      remainingTxs: s === "window-exhausted" ? 0n : 4n,
       remainingValue: 15_000_000_000_000_000_000n,
+      allowedTargets: s === "window-missing-target" ? [PQC_VERIFY_ADDRESS] : [MOCK_REGISTRY],
     };
   }
 
-  async registerProject(input: RegisterInput): Promise<TxResult> {
-    if (this.projects.some((p) => p.slug === input.slug)) {
-      throw new Error(`Slug "${input.slug}" is already taken`);
-    }
-    const idx = this.projects.length + 1;
-    const hexByte = (idx & 0xff).toString(16).padStart(2, "0");
-    const projectId = `0x${hexByte.repeat(32)}` as Hex;
-    const now = Math.floor(Date.now() / 1000);
+  async getKeyStatus(_addr: Hex): Promise<PqcKeyStatus> {
+    const s = getMockWallet().scenario;
+    if (s === "no-pq-key") return { registered: false, algorithmId: 0, possessionProven: false };
+    return { registered: true, algorithmId: 3, possessionProven: s !== "unproven-key" };
+  }
 
+  /* ---------- writes ---------- */
+
+  async registerProject(input: RegisterInput): Promise<TxResult> {
+    this.failIfScenario();
+    const wallet = getMockWallet();
+    if (wallet.scenario === "no-pq-key" || wallet.scenario === "unproven-key") {
+      throw new RegistryError("OwnerNotPQRegistered");
+    }
+    if (!SLUG_REGEX.test(input.slug)) throw new RegistryError("InvalidSlug");
+    if (this.projects.some((p) => p.slug === input.slug)) throw new RegistryError("SlugTaken");
+    const sk = fromHex(input.signingPubkey);
+    const rk = fromHex(input.recoveryPubkey);
+    if (sk.length !== ML_DSA_87_PUBKEY_BYTES || rk.length !== ML_DSA_87_PUBKEY_BYTES) {
+      throw new RegistryError("BadKeyLength");
+    }
+    if (input.signingPubkey.toLowerCase() === input.recoveryPubkey.toLowerCase()) {
+      throw new RegistryError("SameKey");
+    }
+
+    const now = Math.floor(Date.now() / 1000);
     this.projects.push({
-      projectId,
+      projectId: projectIdOf(input.slug),
       slug: input.slug,
-      owner: `0x${hexByte.repeat(20)}` as Hex,
+      owner: wallet.address,
       releaseCount: 0,
       latestVersion: null,
       keyEpoch: 1,
       createdAt: now,
-      signingKeyPtr: `0x${hexByte.repeat(20)}` as Hex,
-      recoveryKeyPtr: `0x${hexByte.repeat(20)}` as Hex,
-      signingKeyFingerprint: `0x${input.signingPubkey.slice(2, 18)}` as Hex,
-      recoveryKeyFingerprint: `0x${input.recoveryPubkey.slice(2, 18)}` as Hex,
+      signingKeyPtr: randomHex(20),
+      recoveryKeyPtr: randomHex(20),
+      signingKeyFingerprint: keyFingerprint(sk),
+      recoveryKeyFingerprint: keyFingerprint(rk),
       signingKeyHex: input.signingPubkey,
       recoveryKeyHex: input.recoveryPubkey,
       nextSeq: 1n,
       rotations: [],
     });
-
-    this.latestBlock += 1n;
-    return {
-      txHash: `0x${hexByte.repeat(32)}` as Hex,
-      blockNumber: this.latestBlock,
-    };
+    return { txHash: randomHex(32), blockNumber: this.nextBlock() };
   }
 
   async publish(bundle: SignedBundle): Promise<TxResult> {
-    const project = this.projects.find((p) => p.slug === bundle.slug);
-    if (!project) {
-      throw new Error(`Unknown project "${bundle.slug}"`);
+    this.failIfScenario();
+    const project = this.findProjectById(bundle.projectId);
+    this.ensureKeys(project);
+    const versionHash = versionHashOf(bundle.version);
+    if (this.releases.some((r) => r.projectId === project.projectId && r.versionHash === versionHash)) {
+      throw new RegistryError("VersionExists");
     }
-    const releaseId = BigInt(this.releases.length);
-    const now = Math.floor(Date.now() / 1000);
-    const txHash = `0x${((this.releases.length + 1) & 0xff).toString(16).padStart(2, "0").repeat(32)}` as Hex;
+    const sig = fromBase64(bundle.signature);
+    if (sig.length !== ML_DSA_87_SIGNATURE_BYTES) throw new RegistryError("BadSigLength");
 
+    // The contract signs over its own nextSeq, so a stale bundle fails verification.
+    const msg = encodePublishMsg({
+      chainId: DIANA_CHAIN_ID,
+      registry: MOCK_REGISTRY,
+      projectId: project.projectId,
+      seq: project.nextSeq,
+      version: bundle.version,
+      artifactHash: bundle.artifactHash,
+      metaHash: bundle.metaHash,
+    });
+    if (!verifyMessage(sig, msg.bytes, fromHex(project.signingKeyHex))) {
+      throw new RegistryError("SignatureInvalid");
+    }
+
+    const txHash = randomHex(32);
     this.releases.push({
-      releaseId,
+      releaseId: BigInt(this.releases.length),
       projectId: project.projectId,
       slug: project.slug,
-      seq: BigInt(bundle.seq),
+      seq: project.nextSeq,
       keyEpoch: project.keyEpoch,
-      publishedAt: now,
+      publishedAt: Math.floor(Date.now() / 1000),
       version: bundle.version,
-      versionHash: txHash,
+      versionHash,
       artifactHash: bundle.artifactHash,
       metaHash: bundle.metaHash,
       notes: bundle.notes,
-      signaturePtr: project.signingKeyPtr,
+      signaturePtr: randomHex(20),
       signingKeyPtr: project.signingKeyPtr,
-      signingKeyFingerprint: bundle.keyFingerprint,
+      signingKeyFingerprint: project.signingKeyFingerprint,
+      signatureHex: toHex(sig),
+      signingKeyHex: project.signingKeyHex,
       publishTxHash: txHash,
       revoked: false,
     });
-
     project.releaseCount += 1;
     project.latestVersion = bundle.version;
     project.nextSeq += 1n;
-    this.latestBlock += 1n;
-
-    return { txHash, blockNumber: this.latestBlock };
+    return { txHash, blockNumber: this.nextBlock() };
   }
 
   async rotateKey(input: RotateInput): Promise<TxResult> {
-    const project = this.projects.find(
-      (p) => p.projectId.toLowerCase() === input.projectId.toLowerCase(),
-    );
-    if (!project) {
-      throw new Error("Unknown project");
+    this.failIfScenario();
+    const project = this.findProjectById(input.projectId);
+    this.ensureKeys(project);
+    const newKey = fromHex(input.newPubkey);
+    if (newKey.length !== ML_DSA_87_PUBKEY_BYTES) throw new RegistryError("BadKeyLength");
+    const lower = input.newPubkey.toLowerCase();
+    if (lower === project.signingKeyHex.toLowerCase() || lower === project.recoveryKeyHex.toLowerCase()) {
+      throw new RegistryError("SameKey");
     }
+    const sig = fromHex(input.signature);
+    if (sig.length !== ML_DSA_87_SIGNATURE_BYTES) throw new RegistryError("BadSigLength");
+    const msg = encodeRotateMsg({
+      chainId: DIANA_CHAIN_ID,
+      registry: MOCK_REGISTRY,
+      projectId: project.projectId,
+      keyEpoch: project.keyEpoch,
+      newPubkey: input.newPubkey,
+      viaRecovery: input.viaRecovery,
+    });
+    const authority = fromHex(input.viaRecovery ? project.recoveryKeyHex : project.signingKeyHex);
+    if (!verifyMessage(sig, msg.bytes, authority)) throw new RegistryError("SignatureInvalid");
+
+    const txHash = randomHex(32);
     project.keyEpoch += 1;
     project.signingKeyHex = input.newPubkey;
-    project.signingKeyFingerprint = `0x${input.newPubkey.slice(2, 18)}` as Hex;
-    this.latestBlock += 1n;
-    const txHash = `0x${(project.keyEpoch & 0xff).toString(16).padStart(2, "0").repeat(32)}` as Hex;
-
+    project.signingKeyPtr = randomHex(20);
+    project.signingKeyFingerprint = keyFingerprint(newKey);
     project.rotations.push({
       epoch: project.keyEpoch,
       rotatedAt: Math.floor(Date.now() / 1000),
@@ -197,25 +359,33 @@ export class MockChainClient implements ChainClient {
       signingKeyFingerprint: project.signingKeyFingerprint,
       txHash,
     });
-
-    return { txHash, blockNumber: this.latestBlock };
+    return { txHash, blockNumber: this.nextBlock() };
   }
 
   async revoke(input: RevokeInput): Promise<TxResult> {
+    this.failIfScenario();
     const release = this.releases.find((r) => r.releaseId === input.releaseId);
-    if (!release) {
-      throw new Error(`Release ${input.releaseId.toString()} not found`);
+    if (!release) throw new Error(`Release ${input.releaseId.toString()} not found`);
+    if (release.revoked) throw new RegistryError("AlreadyRevoked");
+    const project = this.findProjectById(release.projectId);
+    this.ensureKeys(project);
+    const sig = fromHex(input.signature);
+    if (sig.length !== ML_DSA_87_SIGNATURE_BYTES) throw new RegistryError("BadSigLength");
+    const msg = encodeRevokeMsg({
+      chainId: DIANA_CHAIN_ID,
+      registry: MOCK_REGISTRY,
+      projectId: project.projectId,
+      releaseId: release.releaseId,
+      reason: input.reason,
+    });
+    if (!verifyMessage(sig, msg.bytes, fromHex(project.signingKeyHex))) {
+      throw new RegistryError("SignatureInvalid");
     }
-    if (release.revoked) {
-      throw new Error("Release already revoked");
-    }
-    this.latestBlock += 1n;
-    const txHash = `0x${(Number(input.releaseId + 1n) & 0xff).toString(16).padStart(2, "0").repeat(32)}` as Hex;
+    const txHash = randomHex(32);
     release.revoked = true;
     release.revokeReason = input.reason;
     release.revokedAt = Math.floor(Date.now() / 1000);
     release.revokeTxHash = txHash;
-
-    return { txHash, blockNumber: this.latestBlock };
+    return { txHash, blockNumber: this.nextBlock() };
   }
 }

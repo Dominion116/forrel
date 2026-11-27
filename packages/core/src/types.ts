@@ -116,6 +116,8 @@ export interface EvmWindowStatus {
   remainingBlocks: bigint;
   remainingTxs: bigint;
   remainingValue: bigint;
+  /** Contracts this window may call. The registry must be listed. */
+  allowedTargets?: Hex[];
 }
 
 /** Result from the `pqcKeyStatus(address)` precompile. */
