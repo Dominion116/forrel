@@ -1,0 +1,73 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# Next.js and build outputs
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+.turbo/
+.eslintcache
+.cache/
+.swc/
+
+# Testing and coverage
+coverage/
+lcov.info
+*.lcov
+.nyc_output/
+playwright-report/
+test-results/
+blob-report/
+
+# Environment and secrets
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+!.env*.example
+
+# Foundry (contracts)
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+contracts/lib/
+
+# Deployment
+.vercel/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS and editors
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+
+# Scratch and internal docs (never committed)
+PRD.md
+prd.md
+scratch/
+tmp/
+temp/
+*.local
