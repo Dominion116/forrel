@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpRight } from "@/components/ui/button";
 import { CardGrid } from "@/components/ui/card";
+import { CountUp } from "@/components/motion/count-up";
 import { BrandChip, PixelNumeral } from "@/components/ui/stat";
 import { getChainClient } from "@/lib/chain";
 import { useNow, useRecentReleases, useRegistryStats } from "@/lib/chain/hooks";
@@ -24,19 +25,16 @@ export function LiveStats() {
     { value: data?.revokedCount, label: "Revoked", chip: "still shown", note: "yanked, never hidden" },
   ];
   return (
-    <div className="grid gap-12 sm:grid-cols-3 sm:gap-8">
-      {items.map((item) => (
+    <div data-stagger="" className="grid gap-12 sm:grid-cols-3 sm:gap-8">
+      {items.map((item, i) => (
         <div key={item.label} className="flex flex-col gap-4">
           <PixelNumeral className="text-[clamp(4.5rem,3rem+6vw,8rem)]">
-            {item.value === undefined ? "··" : formatInt(item.value)}
+            {item.value === undefined ? "··" : <CountUp value={item.value} duration={1400 + i * 300} />}
           </PixelNumeral>
-          <p className="text-title">
-            {item.label}
-            <span className="sr-only">: {item.value ?? "loading"}</span>
-          </p>
-          <BrandChip value={item.chip} className="self-start">
-            {item.note}
-          </BrandChip>
+          <p className="text-title">{item.label}</p>
+          <span data-reveal="wipe" className="self-start" style={{ ["--delay" as string]: `${500 + i * 150}ms` }}>
+            <BrandChip value={item.chip}>{item.note}</BrandChip>
+          </span>
         </div>
       ))}
     </div>
@@ -57,7 +55,7 @@ export function RecentReleases() {
           {stats.data ? `Read at block ${formatInt(stats.data.latestBlock)}` : "Reading…"}
         </p>
       </div>
-      <CardGrid cols={2} className="sm:grid-cols-1">
+      <CardGrid cols={2} className="sm:grid-cols-1" data-stagger="">
         {isLoading &&
           Array.from({ length: 5 }, (_, i) => (
             <div key={i} data-slot="card" className="h-16 animate-pulse border border-hairline bg-surface" />

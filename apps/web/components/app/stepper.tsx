@@ -59,7 +59,7 @@ export function StepBody({
   footer?: ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-8 border border-hairline p-6 sm:p-8">
+    <section className="animate-rise flex flex-col gap-8 border border-hairline p-6 sm:p-8">
       <header className="flex flex-col gap-3">
         <h2 className="text-title-lg">{title}</h2>
         {description && <div className="max-w-2xl text-body text-muted-foreground">{description}</div>}

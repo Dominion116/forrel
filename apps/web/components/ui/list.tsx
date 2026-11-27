@@ -11,7 +11,7 @@ export function ArrowList({
   className?: string;
 }) {
   return (
-    <ul className={cn("flex flex-col gap-3", className)}>
+    <ul data-stagger="" className={cn("flex flex-col gap-3", className)}>
       {items.map((item, i) => (
         <li key={i} className="flex gap-3 text-body">
           <span aria-hidden="true" className="shrink-0 text-brand-ink in-data-[variant=featured]:text-on-brand">
@@ -47,6 +47,7 @@ export function Row({
   detail,
   trailing,
   tone = "default",
+  trackItem = false,
   className,
 }: {
   index: React.ReactNode;
@@ -54,19 +55,24 @@ export function Row({
   detail?: React.ReactNode;
   trailing?: React.ReactNode;
   tone?: "default" | "past";
+  /** Light up when a surrounding <ScrollTrack> rail reaches this row. */
+  trackItem?: boolean;
   className?: string;
 }) {
   return (
     <li
+      data-track-item={trackItem ? "" : undefined}
       className={cn(
-        "grid grid-cols-[5.5rem_1fr] gap-x-4 gap-y-1 py-6 sm:grid-cols-[9rem_1fr_auto] sm:gap-x-8",
+        "group/row grid grid-cols-[5.5rem_1fr] gap-x-4 gap-y-1 py-6 sm:grid-cols-[9rem_1fr_auto] sm:gap-x-8",
+        trackItem && "transition-[opacity,transform] duration-500 ease-(--ease-out) not-data-active:opacity-45",
         className,
       )}
     >
       <div
         className={cn(
-          "text-body-sm tabular-nums",
+          "text-body-sm tabular-nums transition-colors duration-500",
           tone === "past" ? "text-muted-foreground/70" : "text-muted-foreground",
+          trackItem && "group-data-active/row:font-pixel group-data-active/row:text-lg group-data-active/row:leading-tight group-data-active/row:text-brand-ink",
         )}
       >
         {index}

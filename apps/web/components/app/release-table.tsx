@@ -55,7 +55,7 @@ export function RecentReleasesTable({ pageSize = 10 }: { pageSize?: number }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <ul className="border-t border-dashed border-hairline" aria-busy={isLoading}>
+      <ul data-stagger="" className="border-t border-dashed border-hairline" aria-busy={isLoading}>
         {isLoading &&
           Array.from({ length: 5 }, (_, i) => (
             <li key={i} className="border-b border-dashed border-hairline py-4">
