@@ -1,0 +1,29 @@
+{
+  "name": "forrel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Forrel — a post-quantum release and firmware signing log on QoreChain",
+  "license": "MIT",
+  "workspaces": [
+    "apps/web",
+    "packages/core",
+    "packages/cli",
+    "contracts"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "npm --workspace=@forrel/web run dev",
+    "build": "npm --workspace=@forrel/core run typecheck && npm --workspace=@forrel/cli run typecheck && npm --workspace=@forrel/web run build",
+    "lint": "npm --workspace=@forrel/web run lint",
+    "typecheck": "npm --workspace=@forrel/core run typecheck && npm --workspace=@forrel/cli run typecheck && npm --workspace=@forrel/web run typecheck && npm --workspace=@forrel/contracts run typecheck",
+    "test": "npm --workspace=@forrel/core run test && npm --workspace=@forrel/web run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.9.8",
+    "typescript": "^5.9.3"
+  }
+}
