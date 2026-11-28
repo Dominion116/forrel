@@ -4,10 +4,12 @@
   "private": true,
   "type": "module",
   "bin": {
-    "forrel": "./src/index.ts"
+    "forrel": "./bin/forrel.mjs"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
     "@forrel/core": "*",
@@ -16,6 +18,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "esbuild": "^0.28.2",
     "typescript": "^5.9.3"
   }
 }
