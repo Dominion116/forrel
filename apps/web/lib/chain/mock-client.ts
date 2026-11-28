@@ -221,7 +221,7 @@ export class MockChainClient implements ChainClient {
       live: s !== "window-exhausted",
       remainingBlocks: 540n,
       remainingTxs: s === "window-exhausted" ? 0n : 4n,
-      remainingValue: 15_000_000_000_000_000_000n,
+      remainingValue: 15_000_000n, // uqor (15 QOR), as the chain reports it
       allowedTargets: s === "window-missing-target" ? [PQC_VERIFY_ADDRESS] : [MOCK_REGISTRY],
     };
   }

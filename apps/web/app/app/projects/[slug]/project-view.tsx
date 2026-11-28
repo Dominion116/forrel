@@ -151,14 +151,16 @@ export function ProjectView({ slug }: { slug: string }) {
                     <span className="text-muted-foreground">
                       {formatUtc(r.rotatedAt)} · {r.viaRecovery ? "authorised by the recovery key" : "authorised by the previous key"}
                     </span>
-                    <a
-                      href={txUrl(r.txHash)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="group/link inline-flex w-fit items-center gap-1.5 text-muted-foreground hover:text-foreground"
-                    >
-                      Tx <ArrowUpRight />
-                    </a>
+                    {r.txHash && (
+                      <a
+                        href={txUrl(r.txHash)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group/link inline-flex w-fit items-center gap-1.5 text-muted-foreground hover:text-foreground"
+                      >
+                        Tx <ArrowUpRight />
+                      </a>
+                    )}
                   </span>,
                 ])}
               />

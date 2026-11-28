@@ -36,6 +36,18 @@ npm run forge-std     # once: installs forge-std into lib/ (gitignored)
 forge build
 forge test
 npm run coverage      # summary for src/ only
+npm run abi           # forge build + copy the ABI into packages/core/src/abi.ts (run after contract changes)
+```
+
+### End-to-end check of the web client
+
+`scripts/live-e2e.ts` deploys the real registry bytecode on a local anvil chain (as chain 9800),
+puts mock precompiles at `0x0a01` / `0x0a02`, and drives the web app's `LiveChainClient` through
+register → publish → verify → re-check → revoke → rotate, including revert decoding and tx links.
+
+```bash
+anvil --chain-id 9800            # terminal 1
+npm run abi && npm run e2e       # terminal 2, from contracts/
 ```
 
 ## Deploy to Diana

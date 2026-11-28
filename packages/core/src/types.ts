@@ -36,7 +36,8 @@ export interface KeyRotationRecord {
   rotatedAt: number;
   viaRecovery: boolean;
   signingKeyFingerprint: Hex;
-  txHash: Hex;
+  /** From the KeyRotated event; absent once testnet logs are pruned. */
+  txHash?: Hex;
 }
 
 /** Full project record including key fingerprints and rotation history. */
@@ -69,7 +70,8 @@ export interface Release {
   signingKeyFingerprint: Hex;
   signatureHex?: Hex;
   signingKeyHex?: Hex;
-  publishTxHash: Hex;
+  /** From the ReleasePublished event; absent once testnet logs are pruned. */
+  publishTxHash?: Hex;
   revoked: boolean;
   revokeReason?: RevokeReasonCode;
   revokedAt?: number;
@@ -115,9 +117,12 @@ export interface EvmWindowStatus {
   live: boolean;
   remainingBlocks: bigint;
   remainingTxs: bigint;
+  /** In uqor (6 decimals). */
   remainingValue: bigint;
-  /** Contracts this window may call. The registry must be listed. */
+  /** Contracts this window may call; empty means any. The registry must be allowed. */
   allowedTargets?: Hex[];
+  /** A native-only window admits plain transfers only, never contract calls. */
+  nativeOnly?: boolean;
 }
 
 /** Result from the `pqcKeyStatus(address)` precompile. */

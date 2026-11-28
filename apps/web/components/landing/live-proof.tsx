@@ -121,15 +121,17 @@ function ReleaseRow({ release: r, now }: { release: Release; now: number | null 
           {check === "invalid" && "✕ invalid"}
           {check === "failed" && "Retry"}
         </button>
-        <a
-          href={`${DIANA_EXPLORER_URL}/tx/${r.publishTxHash}`}
-          target="_blank"
-          rel="noreferrer"
-          className="group/link inline-flex items-center gap-1.5 text-body-sm text-muted-foreground hover:text-foreground"
-        >
-          Explorer <ArrowUpRight />
-          <span className="sr-only">(opens in a new tab)</span>
-        </a>
+        {r.publishTxHash && (
+          <a
+            href={`${DIANA_EXPLORER_URL}/tx/${r.publishTxHash}`}
+            target="_blank"
+            rel="noreferrer"
+            className="group/link inline-flex items-center gap-1.5 text-body-sm text-muted-foreground hover:text-foreground"
+          >
+            Explorer <ArrowUpRight />
+            <span className="sr-only">(opens in a new tab)</span>
+          </a>
+        )}
         <span aria-live="polite" className="sr-only">
           {check === "valid" && `Signature for ${r.slug} ${r.version} is valid.`}
           {check === "invalid" && `Signature for ${r.slug} ${r.version} is not valid.`}

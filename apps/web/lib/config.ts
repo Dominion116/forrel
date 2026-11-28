@@ -10,6 +10,12 @@ export const CHAIN_MODE: "mock" | "live" = process.env.NEXT_PUBLIC_CHAIN_MODE ==
 export const DEPLOYED_REGISTRY: Hex | null =
   (process.env.NEXT_PUBLIC_REGISTRY_ADDRESS?.trim() as Hex | undefined) || null;
 
+/** Block the registry was deployed at (deployments/diana.json `deployedAtBlock`); optional. */
+export const REGISTRY_DEPLOY_BLOCK: bigint | null = (() => {
+  const raw = process.env.NEXT_PUBLIC_REGISTRY_DEPLOY_BLOCK?.trim();
+  return raw && /^\d+$/.test(raw) ? BigInt(raw) : null;
+})();
+
 /**
  * The registry address bound into every signed message.
  * Mock mode always uses the mock address so demo signatures stay valid.

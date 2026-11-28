@@ -336,6 +336,14 @@ contract ForrelRegistryTest is Test {
         assertEq(p.keyEpoch, 2);
         assertEq(reg.getPubkey(p.signingKeyPtr), newPk);
 
+        // The rotation is kept in storage (not only in the event log).
+        ForrelRegistry.Rotation[] memory rot = reg.getRotations(pid);
+        assertEq(rot.length, 1);
+        assertEq(rot[0].epoch, 2);
+        assertEq(rot[0].keyPtr, p.signingKeyPtr);
+        assertEq(rot[0].rotatedAt, block.timestamp);
+        assertFalse(rot[0].viaRecovery);
+
         // New key publishes; old key no longer does.
         bytes memory oldSig = _sign(signingPk, _publishMsg(address(reg), pid, 1, "3.0.0", ART, META));
         vm.expectRevert(ForrelRegistry.SignatureInvalid.selector);
@@ -351,6 +359,22 @@ contract ForrelRegistryTest is Test {
         reg.rotateKey(pid, newPk, true, sig);
         assertEq(reg.getProject(pid).keyEpoch, 2);
         assertEq(reg.getPubkey(reg.getProject(pid).signingKeyPtr), newPk);
+        assertTrue(reg.getRotations(pid)[0].viaRecovery);
+    }
+
+    function test_rotations_accumulateInOrder() public {
+        assertEq(reg.getRotations(pid).length, 0);
+        bytes memory k2 = _key(5);
+        reg.rotateKey(pid, k2, false, _sign(signingPk, _rotateMsg(pid, 1, k2, false)));
+        bytes memory k3 = _key(6);
+        reg.rotateKey(pid, k3, true, _sign(recoveryPk, _rotateMsg(pid, 2, k3, true)));
+        ForrelRegistry.Rotation[] memory rot = reg.getRotations(pid);
+        assertEq(rot.length, 2);
+        assertEq(rot[0].epoch, 2);
+        assertEq(reg.getPubkey(rot[0].keyPtr), k2);
+        assertEq(rot[1].epoch, 3);
+        assertEq(reg.getPubkey(rot[1].keyPtr), k3);
+        assertTrue(rot[1].viaRecovery);
     }
 
     function test_rotate_messageMatchesSpec() public view {
@@ -532,6 +556,8 @@ contract ForrelRegistryTest is Test {
         reg.getProject(keccak256("nope"));
         vm.expectRevert(ForrelRegistry.UnknownProject.selector);
         reg.getProjectBySlug("nope");
+        vm.expectRevert(ForrelRegistry.UnknownProject.selector);
+        reg.getRotations(keccak256("nope"));
         vm.expectRevert(SSTORE2.InvalidPointer.selector);
         reg.getPubkey(address(0xdead));
     }

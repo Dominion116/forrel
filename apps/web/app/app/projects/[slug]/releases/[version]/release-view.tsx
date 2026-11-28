@@ -135,9 +135,13 @@ export function ReleaseView({ slug, version }: { slug: string; version: string }
               ["Notes", r.notes ? r.notes : <span key="n" className="text-muted-foreground">None</span>],
               [
                 "Publish tx",
-                <a key="t" href={txUrl(r.publishTxHash)} target="_blank" rel="noreferrer" className="group/link inline-flex items-center gap-1.5 hover:text-brand-ink">
-                  {r.publishTxHash.slice(0, 18)}… <ArrowUpRight />
-                </a>,
+                r.publishTxHash ? (
+                  <a key="t" href={txUrl(r.publishTxHash)} target="_blank" rel="noreferrer" className="group/link inline-flex items-center gap-1.5 hover:text-brand-ink">
+                    {r.publishTxHash.slice(0, 18)}… <ArrowUpRight />
+                  </a>
+                ) : (
+                  <span key="t" className="text-muted-foreground">Event log pruned; the record itself is in contract storage.</span>
+                ),
               ],
               ...(r.revokeTxHash
                 ? ([
