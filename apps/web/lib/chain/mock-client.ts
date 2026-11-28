@@ -229,7 +229,7 @@ export class MockChainClient implements ChainClient {
   async getKeyStatus(_addr: Hex): Promise<PqcKeyStatus> {
     const s = getMockWallet().scenario;
     if (s === "no-pq-key") return { registered: false, algorithmId: 0, possessionProven: false };
-    return { registered: true, algorithmId: 3, possessionProven: s !== "unproven-key" };
+    return { registered: true, algorithmId: 1, possessionProven: s !== "unproven-key" }; // 1 = ML-DSA-87 on QoreChain
   }
 
   /* ---------- writes ---------- */

@@ -12,7 +12,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "vectors": "tsx scripts/gen-vectors.ts vectors/messages.json"
   },
   "dependencies": {
     "@noble/ciphers": "^2.4.0",
@@ -20,6 +21,7 @@
     "@noble/post-quantum": "^0.7.1"
   },
   "devDependencies": {
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3"
   }
 }
