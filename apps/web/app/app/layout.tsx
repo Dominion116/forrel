@@ -18,7 +18,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         Skip to content
       </a>
       <AppHeader />
-      <main id="main" tabIndex={-1} className="flex-1 outline-none">
+      <main id="main" tabIndex={-1} className="flex-1 overflow-hidden outline-none supports-[overflow:clip]:overflow-clip">
         {children}
       </main>
       <AppFooter />

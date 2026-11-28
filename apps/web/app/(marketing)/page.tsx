@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { DitherFigure } from "@/components/illustration/dither-figure";
-import { HashTicker } from "@/components/landing/hash-ticker";
 import { LiveProofSection } from "@/components/landing/live-proof-section";
 import { LiveStrip } from "@/components/landing/live-strip";
 import { SiteFooter, FIGURE_NOTES } from "@/components/landing/site-footer";
@@ -11,7 +10,6 @@ import { StepFigure } from "@/components/landing/step-figure";
 import { Accordion, AccordionItem } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Button } from "@/components/ui/button";
-import { Marquee } from "@/components/motion/marquee";
 import { ScrollTrack } from "@/components/motion/scroll-track";
 import { SplitText } from "@/components/motion/split-text";
 import { TiltCard } from "@/components/motion/tilt-card";
@@ -32,16 +30,6 @@ export const metadata: Metadata = {
 /* ---------- Content ---------- */
 
 const HERO_WORDS = "Releases that still verify after Q-Day.".split(" ");
-
-const BAND_WORDS = ["Verify without a wallet", "No upload", "Hashed on your device", "Checked on-chain"];
-const BAND_FACTS = [
-  "SHA3-256 fingerprints",
-  "ML-DSA-87 signatures",
-  "pqcVerify at 0x…0a01",
-  "Diana testnet · chain 9800",
-  "Revocations stay visible",
-  "Open source · MIT",
-];
 
 const problems = [
   {
@@ -140,9 +128,9 @@ export default function LandingPage() {
       </a>
       <SiteHeader />
 
-      <main id="main" tabIndex={-1} className="overflow-x-clip outline-none">
+      <main id="main" tabIndex={-1} className="overflow-hidden outline-none supports-[overflow:clip]:overflow-clip">
         {/* ---------- 1. Hero ---------- */}
-        <section id="top" className="relative overflow-hidden pt-16 pb-20 sm:pt-24 sm:pb-28">
+        <section id="top" className="relative overflow-hidden pt-10 pb-16 sm:pt-24 sm:pb-28">
           {/* [1] Two hands reaching toward the headline, as in the sample */}
           <DitherFigure
             src="/illustrations/hero-hand-left.png"
@@ -171,15 +159,36 @@ export default function LandingPage() {
             className="hero-scan pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-brand-ink shadow-[0_0_28px_6px_var(--brand-ink)]"
           />
 
-          <Container className="relative flex flex-col items-center gap-8 text-center">
-            <p className="text-eyebrow hero-wipe tracking-[0.5em] text-foreground/80" style={{ animationDelay: "0.05s" }}>
+          <Container className="relative flex flex-col items-center gap-7 text-center sm:gap-8">
+            <p
+              className="text-eyebrow hero-wipe text-[0.625rem] tracking-[0.3em] text-foreground/80 sm:text-[0.6875rem] sm:tracking-[0.5em]"
+              style={{ animationDelay: "0.05s" }}
+            >
               Post-quantum release log
             </p>
+
+            {/* Phones and tablets: the two hands meet above the headline (side hands need lg+) */}
+            {/* The art has ~22% empty black above and below the hands; negative margins absorb it. */}
+            <div className="relative -mt-[16%] -mb-[18%] grid w-[min(86vw,380px)] place-items-center sm:-mt-24 sm:-mb-20 lg:hidden">
+              <span
+                aria-hidden="true"
+                className="hero-ghost pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-pixel-grid text-[clamp(4rem,22vw,6.5rem)] leading-none text-dim uppercase select-none"
+              >
+                Q-Day
+              </span>
+              <DitherFigure
+                src="/illustrations/og-art.png"
+                aspect={1}
+                cell={3}
+                radius={70}
+                className="relative w-full"
+              />
+            </div>
 
             <div className="relative [perspective:900px]">
               <span
                 aria-hidden="true"
-                className="hero-ghost pointer-events-none absolute -top-10 right-0 font-pixel-grid sm:-top-6 text-[clamp(2.5rem,1rem+6vw,6rem)] leading-none text-dim select-none sm:-right-10"
+                className="hero-ghost pointer-events-none absolute -top-6 -right-10 hidden font-pixel-grid text-[clamp(2.5rem,1rem+6vw,6rem)] leading-none text-dim select-none lg:block"
               >
                 Q-Day
               </span>
@@ -199,39 +208,42 @@ export default function LandingPage() {
               on <span className="font-pixel tracking-[0.2em] text-foreground uppercase">QoreChain</span>
             </p>
 
-            <p className="hero-rise max-w-xl text-body text-muted-foreground" style={{ animationDelay: "0.8s" }}>
+            <p className="hero-rise max-w-xl text-body-sm text-muted-foreground sm:text-body" style={{ animationDelay: "0.8s" }}>
               Forrel records every release&apos;s fingerprint with a post-quantum signature, checked
               on-chain. Drop any file to see if it&apos;s genuine.
             </p>
 
-            {/* Lime fact bar (the sample's date / prize strip), wiped in */}
-            <div className="hero-wipe text-eyebrow flex w-full max-w-3xl flex-col items-center gap-2 bg-brand px-6 py-3 text-on-brand sm:flex-row sm:justify-between" style={{ animationDelay: "0.95s" }}>
-              <span>SHA3-256</span>
+            {/* Lime fact bar (the sample's date / prize strip), wiped in.
+                Phones: three equal cells with dividers. sm+: one spaced row. */}
+            <div
+              className="hero-wipe text-eyebrow grid w-full max-w-3xl grid-cols-3 divide-x divide-on-brand/25 bg-brand text-[0.5625rem] tracking-[0.14em] text-on-brand sm:flex sm:justify-between sm:divide-x-0 sm:px-6 sm:py-3 sm:text-[0.6875rem] sm:tracking-[0.32em]"
+              style={{ animationDelay: "0.95s" }}
+            >
+              <span className="px-1 py-3 sm:p-0">SHA3-256</span>
               <span aria-hidden="true" className="hidden sm:inline">·</span>
-              <span>ML-DSA-87</span>
+              <span className="px-1 py-3 sm:p-0">ML-DSA-87</span>
               <span aria-hidden="true" className="hidden sm:inline">·</span>
-              <span>Checked by pqcVerify</span>
+              <span className="px-1 py-3 sm:p-0">
+                <span className="hidden sm:inline">Checked by </span>pqcVerify
+              </span>
             </div>
 
             <div className="hero-rise w-full max-w-3xl" style={{ animationDelay: "1.15s" }}>
               <LiveStrip />
             </div>
 
-            <div className="hero-rise flex flex-col gap-3 sm:flex-row" style={{ animationDelay: "1.3s" }}>
-              <Button asChild size="lg">
+            <div className="hero-rise flex w-full flex-col gap-3 sm:w-auto sm:flex-row" style={{ animationDelay: "1.3s" }}>
+              <Button asChild size="lg" className="w-full sm:w-auto">
                 <a href="#verify">
                   Verify a file <ArrowRight />
                 </a>
               </Button>
-              <Button asChild variant="outline" size="lg">
+              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
                 <Link href="/app/new">Publish your releases</Link>
               </Button>
             </div>
           </Container>
         </section>
-
-        {/* Live ticker of the latest signed releases */}
-        <HashTicker />
 
         {/* ---------- 2. Verify widget ---------- */}
         <Section id="verify" className="scroll-mt-16">
@@ -392,15 +404,6 @@ export default function LandingPage() {
 
         {/* ---------- Lime band ---------- */}
         <BrandBand className="overflow-hidden">
-          {/* Two counter-scrolling pixel tickers frame the band */}
-          <Marquee seconds={28} className="border-b border-on-brand/20 py-3">
-            {BAND_WORDS.map((w) => (
-              <span key={w} className="flex items-center gap-6 px-6 font-pixel text-2xl whitespace-nowrap uppercase sm:text-3xl">
-                {w}
-                <span aria-hidden="true">✦</span>
-              </span>
-            ))}
-          </Marquee>
           <Container className="flex flex-col gap-8 py-14 md:flex-row md:items-center md:justify-between">
             <div data-reveal="left" className="flex flex-col gap-3">
               <p className="text-display-sm">Verify without a wallet</p>
@@ -416,14 +419,6 @@ export default function LandingPage() {
               </Button>
             </div>
           </Container>
-          <Marquee seconds={34} reverse className="border-t border-on-brand/20 py-2">
-            {BAND_FACTS.map((w) => (
-              <span key={w} className="text-eyebrow flex items-center gap-6 px-6 whitespace-nowrap">
-                {w}
-                <span aria-hidden="true">·</span>
-              </span>
-            ))}
-          </Marquee>
         </BrandBand>
 
         {/* ---------- 6. Live proof (inverted, like the sample's pale prize block) ---------- */}
