@@ -585,7 +585,7 @@ export default function DesignSystemPage() {
 
       <footer className="border-t border-hairline bg-surface">
         <Container className="flex flex-col gap-4 py-10 text-body-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>Forrel · Built for Build Before Q-Day</p>
+          <p>Built for Build Before Q-Day</p>
           <nav aria-label="Footer" className="flex gap-6">
             <Link href="/" className="hover:text-foreground">Home</Link>
             <Link href="/app" className="hover:text-foreground">App</Link>

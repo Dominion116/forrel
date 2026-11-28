@@ -20,13 +20,13 @@ import { MockChainClient } from "../mock-client";
 const ARTIFACT = `0x${"aa".repeat(32)}` as Hex;
 
 describe("MockChainClient fixtures", () => {
-  it("loads 6 projects, 30 releases, 2 revoked, and 1 shared artifact hash across multiple projects", async () => {
+  it("loads 5 projects, 22 releases, 2 revoked, and 1 shared artifact hash across multiple projects", async () => {
     const client = new MockChainClient();
     const stats = await client.getStats();
-    expect(stats.projectCount).toBe(6);
-    expect(stats.releaseCount).toBe(30);
+    expect(stats.projectCount).toBe(5);
+    expect(stats.releaseCount).toBe(22);
     expect(stats.revokedCount).toBe(2);
-    expect(await client.listProjects({ offset: 0, limit: 20 })).toHaveLength(6);
+    expect(await client.listProjects({ offset: 0, limit: 20 })).toHaveLength(5);
 
     const shared = await client.findByArtifact(SHARED_ARTIFACT_HASH);
     expect(new Set(shared.map((r) => r.slug)).size).toBe(2);

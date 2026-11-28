@@ -2,7 +2,7 @@ import { DIANA_EXPLORER_URL } from "@forrel/core";
 import Link from "next/link";
 
 import { HashDisplay } from "@/components/ui/hash-display";
-import { Container, Footnote, TextLink } from "@/components/ui/typography";
+import { Container, TextLink } from "@/components/ui/typography";
 
 const REGISTRY = process.env.NEXT_PUBLIC_REGISTRY_ADDRESS?.trim() || null;
 const GITHUB = "https://github.com/Dominion116/forrel";
@@ -14,11 +14,11 @@ export const FIGURE_NOTES = [
   "Same bytes, same hash, same verdict, in ten years as today.",
 ];
 
-/** Footer from the sample: resources, the registry address, figure notes, then a thin bottom bar. */
+/** Footer: resources, the registry address, and a thin bottom bar. */
 export function SiteFooter() {
   return (
     <footer className="border-t border-hairline bg-surface">
-      <Container className="grid gap-12 py-16 md:grid-cols-[1fr_1fr_1.2fr]">
+      <Container className="grid gap-12 py-16 md:grid-cols-2">
         <div className="flex flex-col gap-5">
           <p className="text-eyebrow text-muted-foreground">Resources</p>
           <ul className="flex flex-col gap-3 text-body">
@@ -58,20 +58,11 @@ export function SiteFooter() {
           )}
           <p className="text-body-sm text-muted-foreground">Diana testnet · chain 9800</p>
         </div>
-
-        <div className="flex flex-col gap-4">
-          <p className="text-eyebrow text-muted-foreground">Figures</p>
-          {FIGURE_NOTES.map((note, i) => (
-            <Footnote key={i} n={i + 1} className="max-w-none">
-              {note}
-            </Footnote>
-          ))}
-        </div>
       </Container>
 
       <div className="border-t border-dashed border-hairline">
         <Container className="flex flex-col gap-3 py-6 text-body-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>Forrel · Built for Build Before Q-Day</p>
+          <p>Built for Build Before Q-Day</p>
           <p className="flex flex-wrap gap-x-6 gap-y-2">
             <span>MIT License</span>
             <Link href="/design" className="hover:text-foreground">

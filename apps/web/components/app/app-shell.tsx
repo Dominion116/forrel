@@ -97,7 +97,7 @@ export function AppFooter() {
       </Container>
       <div className="border-t border-dashed border-hairline">
         <Container className="flex flex-col gap-2 py-5 text-body-sm text-muted-foreground sm:flex-row sm:justify-between">
-          <p>Forrel · Built for Build Before Q-Day</p>
+          <p>Built for Build Before Q-Day</p>
           <p>Diana testnet · chain 9800 · MIT License</p>
         </Container>
       </div>

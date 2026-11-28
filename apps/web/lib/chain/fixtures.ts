@@ -35,7 +35,7 @@ export const MOCK_REGISTRY: Hex = "0x5eed00000000000000000000000000000000f0e1";
 /** acme-router's owner. The mock wallet connects as this address so owner actions show. */
 export const MOCK_OWNER: Hex = makeAddress(0x11);
 
-/** Artifact hash intentionally published under two projects (`acme-router` and `grid-relay`). */
+/** Artifact hash intentionally published under two projects (`acme-router` and `medpump-fw`). */
 export const SHARED_ARTIFACT_HASH: Hex =
   "0x4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a";
 
@@ -50,7 +50,6 @@ export const DEMO_FINGERPRINTS: Record<string, { signing: Hex[]; recovery: Hex }
   "medpump-fw": { signing: ["0x5abf87f8a4c44595"], recovery: "0x2c5a9362699a75e8" },
   "car-ecu-boot": { signing: ["0x6fa3d3eea7750e4e", "0x3e7907b9e69bd9a5"], recovery: "0xce67c42f2b95fefa" },
   "openkey-cli": { signing: ["0xfec41e92218bb6c5"], recovery: "0xa4203fec73283cb1" },
-  "grid-relay": { signing: ["0xe9c95f97961153ae"], recovery: "0x3fbf18ef80afa4ee" },
   "vault-agent": { signing: ["0x890dfb3d2282f936"], recovery: "0xc279de1138ddc3ac" },
 };
 
@@ -68,12 +67,11 @@ const PROJECT_SEEDS: ProjectSeed[] = [
   { slug: "acme-router", ownerSeed: 0x11, versions: ["2.0.0", "2.1.0", "2.2.0", "2.3.0", "2.4.0", "2.4.1"], rotated: true },
   { slug: "medpump-fw", ownerSeed: 0x22, versions: ["1.0.0", "1.0.1", "1.1.0", "1.2.0", "1.2.1"] },
   { slug: "car-ecu-boot", ownerSeed: 0x33, versions: ["4.0.0", "4.1.0", "4.1.1", "4.2.0", "4.3.0"], rotated: true },
-  { slug: "openkey-cli", ownerSeed: 0x44, versions: ["0.9.0", "0.9.1", "1.0.0", "1.0.1", "1.1.0"] },
-  { slug: "grid-relay", ownerSeed: 0x55, versions: ["3.1.0", "3.2.0", "3.3.0", "3.4.0", "3.4.1"] },
-  { slug: "vault-agent", ownerSeed: 0x66, versions: ["0.5.0", "0.6.0", "0.7.0", "0.8.0"] },
+  { slug: "openkey-cli", ownerSeed: 0x44, versions: ["0.9.0", "0.9.1", "1.0.0", "1.0.1"] },
+  { slug: "vault-agent", ownerSeed: 0x66, versions: ["0.7.0", "0.8.0"] },
 ];
 
-// Revoke 2 specific releases out of 30: medpump-fw 1.0.1 (idx 7) and openkey-cli 0.9.1 (idx 17)
+// Revoke 2 specific releases out of 22: medpump-fw 1.0.1 (idx 7) and openkey-cli 0.9.1 (idx 17)
 const REVOKED_MAP = new Map<number, { reason: RevokeReasonCode; offset: number }>([
   [7, { reason: 2, offset: 3600 }],
   [17, { reason: 1, offset: 7200 }],
@@ -110,7 +108,7 @@ export function createFixtureData(): { projects: Project[]; releases: Release[] 
       const publishedAt = createdAt + (vIdx + 1) * 7_200;
       const epoch = seed.rotated && vIdx >= 2 ? 2 : 1;
       const isShared =
-        (seed.slug === "acme-router" && vIdx === 0) || (seed.slug === "grid-relay" && vIdx === 0);
+        (seed.slug === "acme-router" && vIdx === 0) || (seed.slug === "medpump-fw" && vIdx === 0);
       const artifactHash = isShared ? SHARED_ARTIFACT_HASH : makeHash(0xb0 + pIdx, releaseCounter + 1);
       const rev = REVOKED_MAP.get(releaseCounter);
       const notes = `Release notes for ${seed.slug} v${version}.`;
