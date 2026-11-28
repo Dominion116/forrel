@@ -34,11 +34,11 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <ThemeToggle className="hidden sm:inline-flex" />
-          <Button asChild variant="outline-brand" size="sm">
+          <ThemeToggle className="hidden lg:inline-flex" />
+          <Button asChild variant="outline-brand" size="sm" className="hidden lg:inline-flex">
             <Link href="/app">Open the app</Link>
           </Button>
-          {/* Small screens: a no-JS disclosure menu */}
+          {/* Small screens: a no-JS disclosure menu that also holds the app CTA */}
           <details className="group relative lg:hidden">
             <summary
               aria-label="Menu"
@@ -47,7 +47,7 @@ export function SiteHeader() {
               <span className="group-open:hidden">Menu</span>
               <span className="hidden group-open:inline">Close</span>
             </summary>
-            <div className="absolute right-0 mt-2 flex w-56 flex-col border border-hairline bg-background p-2">
+            <div className="animate-rise absolute right-0 mt-2 flex w-64 flex-col border border-hairline bg-background p-2">
               {links.map((l) => (
                 <a
                   key={l.href}
@@ -57,8 +57,11 @@ export function SiteHeader() {
                   {l.label}
                 </a>
               ))}
-              <div className="mt-2 border-t border-dashed border-hairline px-3 pt-3 pb-1 sm:hidden">
-                <ThemeToggle />
+              <div className="mt-2 flex flex-col gap-3 border-t border-dashed border-hairline px-3 pt-4 pb-2">
+                <Button asChild variant="outline-brand" size="md" className="w-full">
+                  <Link href="/app">Open the app</Link>
+                </Button>
+                <ThemeToggle className="self-start" />
               </div>
             </div>
           </details>
