@@ -26,6 +26,9 @@ export function SiteFooter() {
               <TextLink href="/app">Open the app</TextLink>
             </li>
             <li>
+              <TextLink href="/docs">Documentation</TextLink>
+            </li>
+            <li>
               <TextLink href="/app/how-it-works">How it works</TextLink>
             </li>
             <li>
@@ -65,6 +68,12 @@ export function SiteFooter() {
           <p>Built for Build Before Q-Day</p>
           <p className="flex flex-wrap gap-x-6 gap-y-2">
             <span>MIT License</span>
+            <Link href="/privacy" className="hover:text-foreground">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-foreground">
+              Terms
+            </Link>
             <Link href="/design" className="hover:text-foreground">
               Design system
             </Link>
