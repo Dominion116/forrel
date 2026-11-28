@@ -1,0 +1,56 @@
+# Example GitHub Action: sign on tag and publish to ForrelRegistry on QoreChain Diana.
+# Configure repository secrets: FORREL_SIGNING_KEYFILE, FORREL_PASSPHRASE, FORREL_SUBMITTER_KEY
+# Configure repository variables: FORREL_REGISTRY, FORREL_PROJECT_SLUG
+name: Forrel Release
+
+on:
+  push:
+    tags:
+      - "release-v*"
+
+jobs:
+  sign-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+      - run: npm --workspace=@forrel/cli run build
+
+      - name: Build release artifact (replace with your build step)
+        run: |
+          mkdir -p dist
+          echo "forrel-release-${GITHUB_REF_NAME}" > dist/artifact.bin
+
+      - name: Write signing keyfile from secret
+        run: printf '%s' "$FORREL_SIGNING_KEYFILE" > /tmp/signing.forrel-key.json
+        env:
+          FORREL_SIGNING_KEYFILE: ${{ secrets.FORREL_SIGNING_KEYFILE }}
+
+      - name: Sign release bundle
+        run: |
+          npx --workspace=@forrel/cli forrel sign ./dist/artifact.bin \
+            --project "$FORREL_PROJECT_SLUG" \
+            --version "${GITHUB_REF_NAME#release-v}" \
+            --key /tmp/signing.forrel-key.json \
+            --out ./dist/artifact.bin.forrel.json
+        env:
+          FORREL_PASSPHRASE: ${{ secrets.FORREL_PASSPHRASE }}
+          FORREL_REGISTRY: ${{ vars.FORREL_REGISTRY }}
+          FORREL_PROJECT_SLUG: ${{ vars.FORREL_PROJECT_SLUG }}
+
+      - name: Publish bundle to QoreChain Diana
+        run: npx --workspace=@forrel/cli forrel publish ./dist/artifact.bin.forrel.json
+        env:
+          FORREL_SUBMITTER_KEY: ${{ secrets.FORREL_SUBMITTER_KEY }}
+          FORREL_REGISTRY: ${{ vars.FORREL_REGISTRY }}
+
+      - name: Verify published artifact
+        run: npx --workspace=@forrel/cli forrel verify ./dist/artifact.bin --project "$FORREL_PROJECT_SLUG"
+        env:
+          FORREL_REGISTRY: ${{ vars.FORREL_REGISTRY }}
+          FORREL_PROJECT_SLUG: ${{ vars.FORREL_PROJECT_SLUG }}
