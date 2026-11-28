@@ -8,20 +8,27 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./signers/qoresign": {
+      "types": "./src/signers/qoresign.ts",
+      "default": "./src/signers/qoresign.ts"
     }
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "node --test test/*.test.mjs",
-    "vectors": "tsx scripts/gen-vectors.ts vectors/messages.json"
+    "vectors": "tsx scripts/gen-vectors.ts vectors/messages.json",
+    "gate": "tsx scripts/pqc-gate.ts"
   },
   "dependencies": {
     "@noble/ciphers": "^2.4.0",
     "@noble/hashes": "^1.8.0",
-    "@noble/post-quantum": "^0.7.1"
+    "@noble/post-quantum": "^0.7.1",
+    "@qorechain/qoresign": "^0.2.0"
   },
   "devDependencies": {
     "tsx": "^4.23.15",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "viem": "^2.58.8"
   }
 }

@@ -1,10 +1,9 @@
 /**
- * Streaming SHA3-256 over a File, off the main thread.
- * The file is read in chunks through `File.stream()`, so memory stays flat for large builds.
- * Nothing is uploaded: the bytes never leave this worker.
+ * Streaming SHA3-256 over a File, off the main thread, using @forrel/core's hasher (the same
+ * code path as the CLI). The file is read in chunks through `File.stream()`, so memory stays
+ * flat for large builds. Nothing is uploaded: the bytes never leave this worker.
  */
-import { sha3_256 } from "@noble/hashes/sha3";
-import { bytesToHex } from "@noble/hashes/utils";
+import { hashStream } from "@forrel/core";
 
 export type HashRequest = { id: number; file: File };
 export type HashResponse =
@@ -23,21 +22,13 @@ ctx.onmessage = async (event: MessageEvent<HashRequest>) => {
   const { id, file } = event.data;
   const started = performance.now();
   try {
-    const hasher = sha3_256.create();
-    const reader = file.stream().getReader();
-    let done = 0;
     let nextReport = PROGRESS_EVERY;
-    for (;;) {
-      const { value, done: finished } = await reader.read();
-      if (finished) break;
-      hasher.update(value);
-      done += value.byteLength;
+    const hash = await hashStream(file.stream(), (done) => {
       if (done >= nextReport) {
         nextReport = done + PROGRESS_EVERY;
         ctx.postMessage({ id, type: "progress", done, total: file.size } satisfies HashResponse);
       }
-    }
-    const hash = `0x${bytesToHex(hasher.digest())}` as const;
+    });
     ctx.postMessage({
       id,
       type: "done",
