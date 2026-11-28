@@ -82,7 +82,16 @@ export function AppFooter() {
           <p className="text-eyebrow text-muted-foreground">Links</p>
           <ul className="flex flex-col gap-2 text-body-sm">
             <li>
+              <TextLink href="/docs">Documentation</TextLink>
+            </li>
+            <li>
               <TextLink href="/app/how-it-works">How it works</TextLink>
+            </li>
+            <li>
+              <TextLink href="/privacy">Privacy</TextLink>
+            </li>
+            <li>
+              <TextLink href="/terms">Terms</TextLink>
             </li>
             <li>
               <TextLink href={GITHUB_URL} external>
