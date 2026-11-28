@@ -15,7 +15,18 @@ export const REGISTRY_ERRORS = {
   NotOwner: "Only the project owner can do that.",
   OwnerNotPQRegistered: "Your account has no registered, possession-proven ML-DSA-87 key on QoreChain.",
   SameKey: "The new key must differ from the current signing key and the recovery key.",
+  UnknownRelease: "No release with that ID exists in the registry.",
+  InvalidVersion: "The version must be 1–64 bytes.",
+  InvalidReason: "The revocation reason must be 0 (unspecified), 1 (key compromised), 2 (critical bug) or 3 (superseded).",
+  ZeroAddress: "The new owner can't be the zero address.",
+  DeploymentFailed: "Storing the key or signature on-chain failed.",
+  InvalidPointer: "That storage pointer holds no data.",
 } as const;
+
+/** True when `name` is one of the registry's custom errors (e.g. decoded from a revert). */
+export function isRegistryErrorCode(name: string): name is RegistryErrorCode {
+  return Object.prototype.hasOwnProperty.call(REGISTRY_ERRORS, name);
+}
 
 export type RegistryErrorCode = keyof typeof REGISTRY_ERRORS;
 

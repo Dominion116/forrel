@@ -61,6 +61,14 @@ contract ForrelRegistry {
         string version;
     }
 
+    /// @notice One key rotation, kept in storage so the history survives event-log pruning.
+    struct Rotation {
+        uint32 epoch; // the new epoch
+        address keyPtr; // SSTORE2 pointer to the new signing key
+        uint64 rotatedAt;
+        bool viaRecovery;
+    }
+
     /// @notice Flat project view for clients (includes the derived ID and release count).
     struct ProjectView {
         bytes32 projectId;
@@ -84,6 +92,7 @@ contract ForrelRegistry {
     mapping(bytes32 projectId => uint256[]) internal _releasesByProject;
     bytes32[] internal _projectIds;
     uint256 public revokedCount;
+    mapping(bytes32 projectId => Rotation[]) internal _rotations;
 
     /* ---------------------------------------------------------------- events */
 
@@ -176,6 +185,10 @@ contract ForrelRegistry {
 
         p.signingKeyPtr = SSTORE2.write(newPubkey);
         p.keyEpoch += 1;
+        _rotations[projectId].push(
+            // forge-lint: disable-next-line(unsafe-typecast) -- uint64 seconds outlast the chain by billions of years
+            Rotation({epoch: p.keyEpoch, keyPtr: p.signingKeyPtr, rotatedAt: uint64(block.timestamp), viaRecovery: viaRecovery})
+        );
 
         // forge-lint: disable-next-line(reentrancy-events) -- only precompile staticcalls and our own SSTORE2 CREATE run before this
         emit KeyRotated(projectId, p.keyEpoch, viaRecovery);
@@ -272,6 +285,12 @@ contract ForrelRegistry {
         for (uint256 i = offset; i < end; ++i) {
             ids[i - offset] = _projectIds[i];
         }
+    }
+
+    /// @notice Every rotation of a project's signing key, oldest first.
+    function getRotations(bytes32 projectId) external view returns (Rotation[] memory) {
+        _project(projectId);
+        return _rotations[projectId];
     }
 
     function stats() external view returns (uint256 projectCount, uint256 releaseCount, uint256 revoked) {

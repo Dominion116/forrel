@@ -233,16 +233,22 @@ function ReleaseFacts({ release }: { release: Release }) {
         ["Hash", <HashDisplay key="h" value={release.artifactHash} label="artifact hash" />],
         [
           "Tx",
-          <a
-            key="tx"
-            href={`${DIANA_EXPLORER_URL}/tx/${release.publishTxHash}`}
-            target="_blank"
-            rel="noreferrer"
-            className="group/link inline-flex items-center gap-1.5 border-b border-control hover:border-brand-ink"
-          >
-            View on explorer <ArrowUpRight />
-            <span className="sr-only">(opens in a new tab)</span>
-          </a>,
+          release.publishTxHash ? (
+            <a
+              key="tx"
+              href={`${DIANA_EXPLORER_URL}/tx/${release.publishTxHash}`}
+              target="_blank"
+              rel="noreferrer"
+              className="group/link inline-flex items-center gap-1.5 border-b border-control hover:border-brand-ink"
+            >
+              View on explorer <ArrowUpRight />
+              <span className="sr-only">(opens in a new tab)</span>
+            </a>
+          ) : (
+            <span key="tx" className="text-muted-foreground">
+              Log pruned (the record is in contract storage)
+            </span>
+          ),
         ],
       ]}
     />

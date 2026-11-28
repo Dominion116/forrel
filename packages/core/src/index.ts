@@ -7,3 +7,4 @@ export * from "./signer";
 export * from "./keys";
 export * from "./keyfile";
 export * from "./errors";
+export * from "./abi";

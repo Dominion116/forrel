@@ -32,15 +32,21 @@ export function ReleaseRow({ release: r, now, showProject = true }: { release: R
       <span className="justify-self-end md:justify-self-start">
         <Badge variant={r.revoked ? "destructive" : "verified"}>{r.revoked ? "Revoked" : "Active"}</Badge>
       </span>
-      <a
-        href={txUrl(r.publishTxHash)}
-        target="_blank"
-        rel="noreferrer"
-        className="group/link order-5 inline-flex items-center gap-1.5 text-body-sm text-muted-foreground hover:text-foreground md:order-none md:justify-self-end"
-      >
-        Tx <ArrowUpRight />
-        <span className="sr-only">for {r.slug} v{r.version} (opens in a new tab)</span>
-      </a>
+      {r.publishTxHash ? (
+        <a
+          href={txUrl(r.publishTxHash)}
+          target="_blank"
+          rel="noreferrer"
+          className="group/link order-5 inline-flex items-center gap-1.5 text-body-sm text-muted-foreground hover:text-foreground md:order-none md:justify-self-end"
+        >
+          Tx <ArrowUpRight />
+          <span className="sr-only">for {r.slug} v{r.version} (opens in a new tab)</span>
+        </a>
+      ) : (
+        <span className="order-5 text-body-sm text-muted-foreground/60 md:order-none md:justify-self-end" title="The event log for this release has been pruned; the record itself is in contract storage.">
+          —
+        </span>
+      )}
     </li>
   );
 }

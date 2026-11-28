@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { useWallet } from "@/lib/wallet/use-wallet";
 
 export type Check = {
-  id: "wallet" | "network" | "pq-key" | "window" | "target";
+  id: "wallet" | "network" | "pq-key" | "window" | "contracts" | "target";
   label: string;
   ok: boolean | null;
   detail: string;
@@ -100,6 +100,20 @@ export function useWalletChecks() {
       fix: win.data && !(win.data.found && win.data.live) && (
         <FixIt>
           <p>Open a window with a hybrid-signed message (secp256k1 + ML-DSA-87). Allow at least 3 transactions and include the registry in allowed targets:</p>
+          <CodeSnippet label="open window command" code="npm --workspace=@forrel/contracts run window -- open" />
+        </FixIt>
+      ),
+    },
+    {
+      id: "contracts",
+      label: "Window allows contract calls",
+      ok: win.data && win.data.found ? !win.data.nativeOnly : null,
+      detail: win.data?.nativeOnly
+        ? "This window is native-only: it admits plain QOR transfers, not contract calls."
+        : "The window is not restricted to native transfers.",
+      fix: win.data && win.data.found && win.data.nativeOnly && (
+        <FixIt>
+          <p>Close it and open a window without the native-only flag, including the registry in allowed targets:</p>
           <CodeSnippet label="open window command" code="npm --workspace=@forrel/contracts run window -- open" />
         </FixIt>
       ),
